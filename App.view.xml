@@ -1,0 +1,27 @@
+<mvc:View
+   xmlns="sap.m"
+   xmlns:control="control"
+   controllerName="gs.App"
+   xmlns:mvc="sap.ui.core.mvc">
+   <Text text="Hello World"/>
+   <control:FormulaTextArea
+      id="textarea"
+      width="100%"
+      tooltip="coucou"
+      rows="1"
+      growingMaxLines="4"
+      liveChange="onLiveChange"
+      suggestionSelected="onSuggestionSelected"
+      suggestionsRequested="onSuggestionsRequested"
+      value="Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world"/>
+
+   <control:FormulaEditor
+      class="wingTestFormulaEditor"
+      id="formula-editor"
+      growingMaxLines="4"
+      tooltip="coucou"
+      liveChange="onLiveChange"
+      suggestionSelected="onSuggestionSelected"
+      suggestionsRequested="onSuggestionsRequested"
+      value="Hello world"/>
+</mvc:View>

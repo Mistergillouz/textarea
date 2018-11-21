@@ -1,0 +1,19 @@
+.sapWingFormulaTextAreaPopup {
+   max-height: 400px;
+   width: 300px;
+}
+
+.wingFormulaEditor {
+   padding: 0.625rem 0 0.625rem 0.75rem;   
+}
+
+.wingFormulaEditor-inner {
+   outline: 0;
+   display: inline-block;
+   overflow: auto;
+   width: 100%;
+}
+
+.wingMkBlue {
+   color: blue;
+}
