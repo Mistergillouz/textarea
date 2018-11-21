@@ -207,7 +207,8 @@ sap.ui.define([
                html += text.substring(start, highlight.start)
             }
 
-            html += '<span class="' + highlight.css + '">' + text.substring(highlight.start, highlight.start + highlight.len) + '</span>'
+            const tooltip = highlight.tooltip ? ` title="${highlight.tooltip}"` : ''
+            html += `<span class="${highlight.css}"${tooltip}>${text.substring(highlight.start, highlight.start + highlight.len)}</span>`
             start = highlight.start + highlight.len
          })
 

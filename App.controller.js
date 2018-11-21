@@ -117,6 +117,7 @@ sap.ui.define([
                highlights.push({
                   start: index,
                   len: word.length,
+                  tooltip: 'coucou',
                   css: 'wingMkBlue'
                })
                index += found.length + 1
