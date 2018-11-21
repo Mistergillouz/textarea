@@ -16,7 +16,6 @@ sap.ui.define([
                growingMaxLines: { type: 'int', defaultValue: 0 },
                width: { type: 'sap.ui.core.CSSSize', defaultValue: '100%' },
                height: { type: 'sap.ui.core.CSSSize', defaultValue: 'auto' },
-               maxHeight: { type: 'sap.ui.core.CSSSize', defaultValue: 'auto' },
                allowEnter: { type: 'boolean', defaultValue: true },
                scrollPosition: { type: 'object', defaultValue: null }
             },
