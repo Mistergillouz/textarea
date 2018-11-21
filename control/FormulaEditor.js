@@ -16,7 +16,7 @@ sap.ui.define([
                growingMaxLines: { type: 'int', defaultValue: 0 },
                width: { type: 'sap.ui.core.CSSSize', defaultValue: '100%' },
                height: { type: 'sap.ui.core.CSSSize', defaultValue: 'auto' },
-               allowEnter: { type: 'boolean', defaultValue: true },
+               allowEnter: { type: 'boolean', defaultValue: false },
                scrollPosition: { type: 'object', defaultValue: null }
             },
             aggregations: {},
@@ -74,7 +74,6 @@ sap.ui.define([
       }
 
       FormulaEditor.prototype.onAfterRendering = function () {
-         console.log('onAfterRendering')
          Control.prototype.onAfterRendering.call(this);
 
          const inner = $(`#${this._getInnerId()}`)
@@ -142,6 +141,7 @@ sap.ui.define([
       }
       
       FormulaEditor.prototype._onKeyDown = function (oEvent) {
+         console.log(oEvent.key)
          let valueChanged = true
          let updateCaret = true
          if (this._isPopupOpen()) {
@@ -178,6 +178,7 @@ sap.ui.define([
                      this._onItemSelected(item)
                      updateCaret = false
                   }
+                  valueChanged = false
                   break
 
                default:
@@ -196,7 +197,6 @@ sap.ui.define([
       }
 
       FormulaEditor.prototype._getValueHtml = function () {
-         console.log('_getValueHtml')
          const highlights = this.getHighlights() || []
          const text = this.getValue()
          let html = ''
