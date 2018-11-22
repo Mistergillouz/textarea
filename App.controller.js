@@ -7,6 +7,11 @@ sap.ui.define([
 
    let count = 0
 
+   const SuggestionKind = {
+      Formula: 1,
+      Object: 2
+    }
+
    C.prototype.onInit = function () {
 
       const formulaEditor = this.byId('formula-editor')
@@ -29,25 +34,19 @@ sap.ui.define([
 
    C.prototype.onSuggestionSelected = function (oEvent) {
       const suggestion = oEvent.getParameter('item').getBindingContext().getObject()
-      const position = oEvent.getSource().getCaretPosition()
-      const formula = oEvent.getSource().getValue()
-      const wordInfos = this._extractWordAt(formula, position - 1)
-      if (wordInfos) {
-         console.log(wordInfos)
-         let text = suggestion.text
-         if (wordInfos.isFunction) {
-            const index = suggestion.text.indexOf('(')
-            if (index !== -1) {
-               text = text.substring(0, index)
-            }
-         }
-         let newFormula = formula.substring(0, wordInfos.start) + text + formula.substring(wordInfos.end + 1)
-         const highlights = this._getHighlights(newFormula)
+    const caret = oEvent.getSource().getCaretPosition() - 1
+    const formula = oEvent.getSource().getValue()
+    const wordInfos = this._extractWordAt(formula, caret)
+    if (wordInfos) {
+      const [newFormula, leftBracketAdded] = this._insertSuggestion(formula, suggestion, wordInfos) // eslint-disable-line
+      oEvent.getSource().setValue(newFormula)
 
-         oEvent.getSource().setValue(newFormula)
-         oEvent.getSource().setHighlights(highlights)
-         oEvent.getSource().setCaretPosition(wordInfos.start + text.length - 1)
+      let newCaretPosition = wordInfos.start + suggestion.text.length + 1
+      if (leftBracketAdded) {
+        newCaretPosition += 1
       }
+      oEvent.getSource().setCaretPosition(newCaretPosition)
+    }
    }
 
    C.prototype._handleSuggestions = function (oEvent, formula) {
@@ -56,7 +55,7 @@ sap.ui.define([
       console.log(formula, 'caret=', position, 'infos', wordInfos)
       let suggestions = []
       if (wordInfos) {
-         suggestions = this._getSuggestions(wordInfos.partialWord)
+         suggestions = this._getSuggestions(wordInfos)
          console.log(suggestions.length)
       }
 
@@ -64,63 +63,128 @@ sap.ui.define([
    }
 
    C.prototype._extractWordAt = function (text, position) {
-      const regLetters = new RegExp(/[A-Za-z\u00C0-\u00FF_]+/)
-      const regFunctDelimiters = new RegExp(/[()]/)
-      const regObjectDelimiters = new RegExp(/[\[\]]/)
-
-      let start = -1, isObject = false
-      for (let i = position; i >= 0; i--) {
-         const char = text.charAt(i)
-         if (!regLetters.test(char)) {
-            isObject = regObjectDelimiters.test(char)
-            break
-         }
-         start = i
+      if (!text || text.trim().charAt(0) != '=' || position < 1) {
+        return null
       }
-
-      if (start !== -1) {
-         let end = start
-         let isFunction = false
-         for (let i = start + 1; i < text.length; i++) {
+  
+      let quotes = 0
+      let openBracket = false
+      for (let i = 0; i <= position; i++) {
+        const char = text.charAt(i)
+        if (char === '"') {
+          quotes += 1
+        }
+        if ((quotes % 2) === 0) {
+          if (char === '[') {
+            openBracket = true
+          } else if (char === ']') {
+            openBracket = false
+          }
+        }
+      }
+  
+      // Inside a quoted string
+      if (quotes % 2) {
+        return null
+      }
+  
+      let start = -1
+      let end = -1
+      if (openBracket) {
+        // Rewing to the opening bracket
+        for (let i = position; i >= 0; i--) {
+          if (text.charAt(i) === '[') {
+            break
+          }
+          start = i
+        }
+  
+        end = start
+        for (let i = position; i < text.length; i++) {
+          const char = text.charAt(i)
+          if (']();,'.indexOf(char) !== -1) {
+            break
+          }
+          end = i
+        }
+      } else {
+        const regLetters = new RegExp(/[A-Za-z0-9\u00C0-\u00FF_]+/)
+        for (let i = position; i >= 0; i--) {
+          const char = text.charAt(i)
+          if (!regLetters.test(char)) {
+            break
+          }
+          start = i
+        }
+        if (start !== -1) {
+          end = position
+          for (let i = start + 1; i < text.length; i++) {
             const char = text.charAt(i)
             if (!regLetters.test(char)) {
-               isFunction = regFunctDelimiters.test(char)
-               break
+              break
             }
-
             end = i
-         }
-         return {
-            position,
-            fullWord: text.substring(start, end + 1),
-            partialWord: text.substring(start, position),
-            start,
-            end,
-            isFunction,
-            isObject
-         }
+          }
+        }
       }
-      
+  
+      if (start !== -1) {
+        return {
+          fullWord: text.substring(start, end + 1),
+          partialWord: text.substring(start, position + 1),
+          withinObject: openBracket,
+          start,
+          end
+        }
+      }
+  
       return null
    }
+
+   C.prototype._insertSuggestion = function (formula, suggestion, textInfos) {
+      let leftBracketAdded = false
+      let text = formula.substring(0, textInfos.start)
+      if (suggestion.kind === SuggestionKind.Object) {
+        if (text.charAt(text.length - 1) !== '[') {
+          leftBracketAdded = true
+          text += '['
+        }
+      }
+  
+      text += suggestion.text
+      let remaining = formula.substring(textInfos.end + 1)
+      if (suggestion.kind === SuggestionKind.Formula) {
+        if (remaining.charAt(0) !== '(') {
+          remaining = `()${remaining}`
+        }
+      } else if (remaining.charAt(0) !== ']') {
+        remaining = `]${remaining}`
+      }
+  
+      text += remaining
+      return [
+        text,
+        leftBracketAdded
+      ]
+    }
    
    C.prototype._getHighlights = function (value) {
-      const dico = this._getDictionary()
+      const dico = this._getFunctions()
       const highlights = []
       let index = 0
       while (index < value.length) {
          const infos = this._extractWordAt(value, index)
          if (infos) {
-            const found = dico.find((word) => word.toLocaleLowerCase() === infos.fullWord.toLocaleLowerCase())
+            const found = dico.find((funct) => funct.name.toLocaleLowerCase() === infos.fullWord.toLocaleLowerCase())
             if (found) {
-               const word = found.replace(/[()\[\]]/g, '')
+               const name = found.name.replace(/[()\[\]]/g, '')
                highlights.push({
                   start: index,
-                  len: word.length,
-                  tooltip: 'coucou',
+                  len: name.length,
+                  tooltip: found.description,
                   css: 'wingMkBlue'
                })
-               index += found.length + 1
+               index += name.length + 1
             } else {
                index++
             }
@@ -132,21 +196,53 @@ sap.ui.define([
       return highlights
    }
 
-   C.prototype._getSuggestions = function (text) {
-      const dico = this._getDictionary()
-      return dico
-         .filter(w => w.toLocaleLowerCase().indexOf(text.toLocaleLowerCase()) === 0)
-         .map(w => ({ text: w + '()', icon: 'sap-icon://source-code'}))
-      
-   }
+   C.prototype._getSuggestions = function (textInfos) {
+      const textPart = textInfos.partialWord.toLowerCase().trim()
+      let suggestedfunctions = []
+      if (!textInfos.withinObject) {
+        const functions =this._getFunctions()
+        suggestedfunctions = this._match(functions, textPart, (entry) => Object.assign(entry, {
+          icon: 'sap-icon://simulate',
+          kind: SuggestionKind.Formula
+        }))
+      }
+  
+      const dictObjects = this._getDictionary()
+      const suggestedDictObjects = this._match(dictObjects, textPart, (entry) => {
+        let icon = null
+        switch (entry['@qualification']) {
+          case 'Hierarchy':
+            icon = 'sap-icon://product'
+            break
+          case 'Measure':
+          case 'Attribute':
+            icon = 'sap-icon://measure'
+            break
+          default:
+            icon = 'sap-icon://dimension'
+        }
+  
+        return Object.assign(entry, {
+          kind: SuggestionKind.Object,
+          icon
+        })
+      })
+  
+      return suggestedfunctions.concat(suggestedDictObjects)
+    }
 
+    C.prototype._match = function (suggestions, textPart, fnCallback) {
+      return (suggestions || [])
+        .filter((entry) => entry.name.toLowerCase().indexOf(textPart) === 0)
+        .map((entry) => fnCallback({ text: entry.name }))
+    }
+  
+  
    C.prototype._getDictionary = function () {
-      return ['aah', 'aahed', 'aahing', 'aahs', 'aal', 'aalii', 'aaliis', 'aals', 'aam', 'aani', 'aardvark', 'aardvarks', 'aardwolf', 'aardwolves', 'aargh', 'aaron', 'aaronic', 'aaronical', 'aaronite', 'aaronitic', 'aarrgh', 'aarrghh', 'aaru', 'aas', 'aasvogel', 
-      'aasvogels', 'ab', 'aba', 'ababdeh', 'ababua', 'abac', 'abaca', 'abacay', 'abacas', 'abacate', 'abacaxi', 'abaci', 'abacinate', 'abacination', 'abacisci', 'abaciscus', 'abacist', 'aback', 'abacli', 'abacot', 
-      'abacterial', 'abactinal', 'abactinally', 'abaction', 'abactor', 'abaculi',
-      '[City]', '[Region]'
-   ]
-
+      return this.getView().getViewData().dict
+   }
+   C.prototype._getFunctions = function () {
+      return this.getView().getViewData().functions
    }
 
    return C

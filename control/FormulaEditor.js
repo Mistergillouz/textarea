@@ -16,7 +16,7 @@ sap.ui.define([
                growingMaxLines: { type: 'int', defaultValue: 0 },
                width: { type: 'sap.ui.core.CSSSize', defaultValue: '100%' },
                height: { type: 'sap.ui.core.CSSSize', defaultValue: 'auto' },
-               allowEnter: { type: 'boolean', defaultValue: false },
+               allowEnter: { type: 'boolean', defaultValue: true },
                scrollPosition: { type: 'object', defaultValue: null }
             },
             aggregations: {},
@@ -68,7 +68,7 @@ sap.ui.define([
          oRm.write(">")
 
          oRm.write(`<div contenteditable spellcheck="false" class="wingFormulaEditor-inner" id="${this._getInnerId()}">`)
-         oRm.write(this._getValueHtml())
+         oRm.write(this._createValueString())
          oRm.write("</div>")
          oRm.write("</div>")
       }
@@ -76,21 +76,20 @@ sap.ui.define([
       FormulaEditor.prototype.onAfterRendering = function () {
          Control.prototype.onAfterRendering.call(this);
 
-         const inner = $(`#${this._getInnerId()}`)
+         const textarea =this._getTextArea()
          const growingMaxLines = this.getGrowingMaxLines()
          if (!isNaN(growingMaxLines)) {
-            const fontHeight = parseInt(window.getComputedStyle(inner[0]).fontSize, 10)
-            inner.css('max-height', `${fontHeight * growingMaxLines}px`)
+            const fontHeight = parseInt(window.getComputedStyle(textarea).fontSize, 10)
+            textarea.style.maxHeight = `${fontHeight * growingMaxLines}px`
          }
 
          const rows = this.getRows()
          if (!isNaN(rows)) {
-            const fontHeight = parseInt(window.getComputedStyle(inner[0]).fontSize, 10)
-            inner.css('min-height', `${fontHeight * rows}px`)
+            const fontHeight = parseInt(window.getComputedStyle(textarea).fontSize, 10)
+            textarea.style.minHeight = `${fontHeight * rows}px`
          }
 
-         const $textarea = $('#' + this._getInnerId())
-         $textarea.on({
+         $(textarea).on({
             keydown: (oEvent) => this._onKeyDown(oEvent),
             mousedown: () => this._afterKeydown(true, true)
          })
@@ -126,6 +125,7 @@ sap.ui.define([
 
       FormulaEditor.prototype._getScrollPosition = function () {
          const textarea = this._getTextArea()
+         console.log('top', textarea.scrollTop)
          return {
             left: textarea.scrollLeft,
             top: textarea.scrollTop
@@ -188,15 +188,17 @@ sap.ui.define([
          } else if (oEvent.keyCode === 32 && oEvent.ctrlKey) {
             this.fireSuggestionsRequested()
             valueChanged = false
-         } else if (!this.getAllowEnter() && oEvent.key === 'Enter') {
-            valueChanged = false
+         } else if (oEvent.key === 'Enter') {
+            if (!this.getAllowEnter()) {
+               valueChanged = false
+            }
          }
 
          this._afterKeydown(valueChanged, updateCaret)
          return valueChanged
       }
 
-      FormulaEditor.prototype._getValueHtml = function () {
+      FormulaEditor.prototype._createValueString = function () {
          const highlights = this.getHighlights() || []
          const text = this.getValue()
          let html = ''
@@ -213,6 +215,7 @@ sap.ui.define([
          })
 
          html += text.substring(start)
+         // html = html.replace(/(?:\r\n|\r|\n)/g, '<br>')
          return html
       }
 
@@ -224,7 +227,7 @@ sap.ui.define([
             }
    
             if (valueChanged) {
-               const value = this._getTextArea().textContent
+               const value = this._getTextArea().innerText
                this.setProperty('value', value, true)
                this.fireLiveChange({ value })
             }
