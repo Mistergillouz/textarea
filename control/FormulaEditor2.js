@@ -42,7 +42,7 @@ sap.ui.define([
          const model = new sap.ui.model.json.JSONModel()
          this._list.setModel(model).bindItems('/', new sap.m.StandardListItem({
             icon: '{icon}',
-            title: '{text}',
+            title: '{name}',
             type: 'Active'
          }))
 
@@ -101,12 +101,15 @@ sap.ui.define([
          const textarea = this._getTextArea()
          if (textarea) {
             textarea.value = value
-            this._onUpdate()
+            this._updateFormula()
          }
+
+         console.log('setValue')
       }
 
       FormulaEditor.prototype.setCaretPosition = function (value) {
          this.setProperty('caretPosition', value, true)
+         this._setCaretPosition(value)
       }
 
       FormulaEditor.prototype.setScrollPosition = function (position) {
@@ -163,7 +166,6 @@ sap.ui.define([
          const output = this._getOutput()
          const oldTokens = output.childNodes
          const newTokens = text.match(this._masterRegExp)
-         console.log(newTokens)
          let firstDiff, lastDiffNew, lastDiffOld
 
          // find the first difference
@@ -224,22 +226,25 @@ sap.ui.define([
 
       
       FormulaEditor.prototype._onUpdate = function (oEvent) {
+         this._updateFormula()
+         this._afterUpdate(true, true)
+      }
+
+      FormulaEditor.prototype._updateFormula = function () {
          const textarea = this._getTextArea()
          var input = textarea.value;
          if (input) {
             this._colorize(input)
             const lines = input.split('\n');
             textarea.rows = lines.length
-            console.log(this._getCaretPosition())
          } else {
             this._getOutput().innerHTML = ''
             textarea.rows = 1
          }
-
-         this._afterUpdate(true, true)
       }
 
       FormulaEditor.prototype._updatePositions = function () {
+         console.log('_updatePositions')
          this.setCaretPosition(this._getCaretPosition())
          this.setScrollPosition(this._getScrollPosition())
       }
@@ -274,7 +279,7 @@ sap.ui.define([
       
       FormulaEditor.prototype._onKeyDown = function (oEvent) {
          console.log(oEvent.key)
-         let valueChanged = true
+         let handled = false
          let updateCaret = true
          if (this._isPopupOpen()) {
             let item = null
@@ -296,12 +301,13 @@ sap.ui.define([
                   }
 
                   this._list.setSelectedItem(items[index])
-                  valueChanged = false
+                  handled = true
+                  updateCaret = false
                   break
 
                case 'Escape':
                   this._hidePopup()
-                  valueChanged = false
+                  handled = true
                   break
 
                case 'Enter':
@@ -310,7 +316,7 @@ sap.ui.define([
                      this._onItemSelected(item)
                      updateCaret = false
                   }
-                  valueChanged = false
+                  handled = true
                   break
 
                default:
@@ -319,15 +325,17 @@ sap.ui.define([
 
          } else if (oEvent.keyCode === 32 && oEvent.ctrlKey) {
             this.fireSuggestionsRequested()
-            valueChanged = false
+            handled = false
          } else if (oEvent.key === 'Enter') {
             if (!this.getAllowEnter()) {
-               valueChanged = false
+               handled = false
             }
          }
 
-         this._afterUpdate(valueChanged, updateCaret)
-         return valueChanged
+         this._afterUpdate(!handled, updateCaret)
+         if (handled) {
+            oEvent.preventDefault()
+         }
       }
 
       FormulaEditor.prototype._afterUpdate = function (valueChanged, updatePosition) {
@@ -350,12 +358,14 @@ sap.ui.define([
          }
          if (!this._popup.isOpen()) {
             this._popup.open(250, Popup.Dock.BeginBottom, Popup.Dock.BeginTop, this)
+            const rect = this.getDomRef().getBoundingClientRect()
+            const domPopup = this._popup._$()
+            domPopup.css('top', Math.floor(rect.y + rect.height)).css('left', Math.floor(rect.x))
          }
       }
 
       FormulaEditor.prototype._createPopup = function () {
          this._popup = new Popup(this._container, false, true, false)
-         this._popup.attachOpened(this._onPopupOpened.bind(this))
       }
 
       FormulaEditor.prototype._hidePopup = function () {
@@ -368,36 +378,10 @@ sap.ui.define([
          return this._popup && this._popup.isOpen()
       }
 
-      FormulaEditor.prototype._onPopupOpened = function (oEvent) {
-         const rect = this.getDomRef().getBoundingClientRect()
-         const domPopup = this._popup._$()
-         domPopup.css('top', Math.floor(rect.y + rect.height)).css('left', Math.floor(rect.x))
-      }
-
-      FormulaEditor.prototype._setCaretPosition = function (el, pos) {
-         // Loop through all child nodes
-         for (var node of el.childNodes) {
-            if (node.nodeType == 3) { // we have a text node
-               if (node.length >= pos) {
-                  // finally add our range
-                  var range = document.createRange(),
-                     sel = window.getSelection();
-                  range.setStart(node, pos);
-                  range.collapse(true);
-                  sel.removeAllRanges();
-                  sel.addRange(range);
-                  return -1; // we are done
-               } else {
-                  pos -= node.length;
-               }
-            } else {
-               pos = this._setCaretPosition(node, pos);
-               if (pos == -1) {
-                  return -1; // no need to finish the for loop
-               }
-            }
-         }
-         return pos; // needed because of recursion stuff
+      FormulaEditor.prototype._setCaretPosition = function (pos) {
+         const textarea = this._getTextArea()
+         textarea.selectionStart = pos
+         textarea.selectionEnd = pos
       }
 
       FormulaEditor.prototype._getCaretPosition = function () {

@@ -24,5 +24,5 @@
       liveChange="onLiveChange"
       suggestionSelected="onSuggestionSelected"
       suggestionsRequested="onSuggestionsRequested"
-      value="=Ancestor(100) + Coucou"/>
+      value="=Ancestor(100) + [Coucou] + if true Then toto"/>
 </mvc:View>

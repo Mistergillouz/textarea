@@ -87,8 +87,8 @@
 	min-width: 100%;
 	min-height: 100%;
 	overflow: hidden;
-	/* IE doesn't support rgba texarea, so use vendor specific alpha filter */
-	filter: alpha(opacity = 20);
+	color: transparent !important;
+
 }
 
 .wingfe .functions {
@@ -101,4 +101,8 @@
 
 .wingfe .string {
    color: orange;
+}
+
+.wingfe .object {
+	color: darkcyan;
 }
