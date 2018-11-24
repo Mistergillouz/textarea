@@ -18,3 +18,87 @@
    color: blue;
    font-weight: bold;
 }
+
+
+.wingfe, .wingfe label {
+	padding: 10px 12px;
+}
+
+.wingfe, .wingfe pre, .wingfe textarea {
+	font-size: 14px;
+	font-family: Arial,Helvetica,sans-serif;
+	color: black;
+}
+
+.wingfe textarea {
+	/* fallback for browsers without rgba */
+	color: transparent !important;
+	/* make sure the alpha is low enough so it doesn't block the output layer */
+	color: rgba(0,0,0,.2) !important;
+}
+
+/* settings you shouldn't play with unless you have a good reason */
+
+.wingfe {
+	overflow: auto;
+   position: relative;
+   background: white;
+   border: 1px solid #aaa;
+   box-sizing: border-box;
+   -moz-box-sizing: border-box;
+   -webkit-box-sizing: border-box;
+   box-shadow: 0 4px 8px #eee inset;
+   -moz-box-shadow: 0 4px 8px #eee inset;
+   -webkit-box-shadow: 0 4px 8px #eee inset;
+   border-radius: 4px;
+   -moz-border-radius: 4px;
+   -webkit-border-radius: 4px;
+}
+
+.wingfe textarea {
+   caret-color: black;
+}
+
+.wingfe pre {
+	margin: 0;
+	overflow: initial;
+}
+
+.wingfe label {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: inline;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	cursor: text;
+}
+
+.wingfe textarea {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: 0;
+	outline: none;
+	resize: none;
+	min-width: 100%;
+	min-height: 100%;
+	overflow: hidden;
+	/* IE doesn't support rgba texarea, so use vendor specific alpha filter */
+	filter: alpha(opacity = 20);
+}
+
+.wingfe .functions {
+   color: red;
+}
+
+.wingfe .number {
+   color: blue;
+}
+
+.wingfe .string {
+   color: orange;
+}

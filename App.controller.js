@@ -13,19 +13,12 @@ sap.ui.define([
     }
 
    C.prototype.onInit = function () {
-
-      const formulaEditor = this.byId('formula-editor')
-      const text = 'aah() Hello World!!!'
-      const highlights = this._getHighlights(text)
-      formulaEditor.setValue(text)
-      formulaEditor.setHighlights(highlights)
+     this.byId('formula-editor2').setFunctions(this._getFunctions())
    }
 
    C.prototype.onLiveChange = function (oEvent) {
       const value = oEvent.getParameter('value')
       this._handleSuggestions(oEvent, value)
-      const highlights = this._getHighlights(value)
-      this.byId('formula-editor').setHighlights(highlights)
    }
 
    C.prototype.onSuggestionsRequested = function (oEvent) {
@@ -168,34 +161,6 @@ sap.ui.define([
       ]
     }
    
-   C.prototype._getHighlights = function (value) {
-      const dico = this._getFunctions()
-      const highlights = []
-      let index = 0
-      while (index < value.length) {
-         const infos = this._extractWordAt(value, index)
-         if (infos) {
-            const found = dico.find((funct) => funct.name.toLocaleLowerCase() === infos.fullWord.toLocaleLowerCase())
-            if (found) {
-               const name = found.name.replace(/[()\[\]]/g, '')
-               highlights.push({
-                  start: index,
-                  len: name.length,
-                  tooltip: found.description,
-                  css: 'wingMkBlue'
-               })
-               index += name.length + 1
-            } else {
-               index++
-            }
-         } else {
-            index++
-         }
-      }
-
-      return highlights
-   }
-
    C.prototype._getSuggestions = function (textInfos) {
       const textPart = textInfos.partialWord.toLowerCase().trim()
       let suggestedfunctions = []

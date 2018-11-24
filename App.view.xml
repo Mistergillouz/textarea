@@ -15,13 +15,14 @@
       suggestionsRequested="onSuggestionsRequested"
       value="Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world"/>
 
-   <control:FormulaEditor
-      class="wingTestFormulaEditor"
-      id="formula-editor"
+   
+   <control:FormulaEditor2
+      class="wingTestFormulaEditor2"
+      id="formula-editor2"
       growingMaxLines="4"
       tooltip="coucou"
       liveChange="onLiveChange"
       suggestionSelected="onSuggestionSelected"
       suggestionsRequested="onSuggestionsRequested"
-      value="Hello world"/>
+      value="=Ancestor(100) + Coucou"/>
 </mvc:View>
