@@ -288,8 +288,6 @@ sap.ui.define([
       }
 
       FormulaEditor.prototype._onKeyDown = function (oEvent) {
-         console.log("key=", oEvent.key)
-         
          let preventDefault = false
          let updateCaret = false
 
@@ -314,6 +312,11 @@ sap.ui.define([
                   preventDefault = true
                   break
 
+               case 'ArrowLeft':
+               case 'ArrowRight':
+                  this._hidePopup()
+                  break
+
                case 'Escape':
                   this._hidePopup()
                   preventDefault = true
@@ -336,12 +339,11 @@ sap.ui.define([
                this.fireSuggestionsRequested()   
                preventDefault = true
             }
-         } else if (oEvent.key === 'Enter') {
-            if (!this.getAllowEnter()) {
-               preventDefault = true
-            }
-         } else {
-            updateCaret = ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].indexOf(oEvent.key) !== -1
+         } else if (oEvent.key === 'Enter' && !this.getAllowEnter()) {
+            preventDefault = true
+         } else if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].indexOf(oEvent.key) !== -1) {
+            updateCaret = true
+            this._hidePopup()
          }
 
          this._afterUpdate(false, updateCaret)
@@ -357,12 +359,10 @@ sap.ui.define([
 
          setTimeout(() => {
             if (updateCaret) {
-               console.log('updateCaret')
                this._updatePositions()
             }
             
             if (formulaChanged) {
-               console.log('fireLiveChange')
                const formula = this._getTextArea().value
                this.setProperty('formula', formula, true)
                this.fireFormulaChange({ formula })

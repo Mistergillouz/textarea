@@ -3,13 +3,13 @@
    xmlns:control="control"
    controllerName="gs.App"
    xmlns:mvc="sap.ui.core.mvc">
-   <Text text="Hello World"/>
+   <TextArea value="Hello World"/>
       
    <control:FormulaEditor2
       class="wingTestFormulaEditor2"
       id="formula-editor2"
+      rows="1"
       growingMaxLines="4"
-      tooltip="coucou"
       formulaChange="onFormulaChange"
       suggestionSelected="onSuggestionSelected"
       suggestionsRequested="onSuggestionsRequested"
