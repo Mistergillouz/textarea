@@ -4,25 +4,14 @@
    controllerName="gs.App"
    xmlns:mvc="sap.ui.core.mvc">
    <Text text="Hello World"/>
-   <control:FormulaTextArea
-      id="textarea"
-      width="100%"
-      tooltip="coucou"
-      rows="1"
-      growingMaxLines="4"
-      liveChange="onLiveChange"
-      suggestionSelected="onSuggestionSelected"
-      suggestionsRequested="onSuggestionsRequested"
-      value="Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world Hello world"/>
-
-   
+      
    <control:FormulaEditor2
       class="wingTestFormulaEditor2"
       id="formula-editor2"
       growingMaxLines="4"
       tooltip="coucou"
-      liveChange="onLiveChange"
+      formulaChange="onFormulaChange"
       suggestionSelected="onSuggestionSelected"
       suggestionsRequested="onSuggestionsRequested"
-      value="=Ancestor(100) + [Coucou] + if true Then toto"/>
+      formula="=Ancestor(100) + [Coucou] + if true Then toto"/>
 </mvc:View>

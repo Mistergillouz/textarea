@@ -16,23 +16,23 @@ sap.ui.define([
     this.byId('formula-editor2').setFunctions(this._getFunctions())
   }
 
-  C.prototype.onLiveChange = function (oEvent) {
-    const value = oEvent.getParameter('value')
-    this._handleSuggestions(oEvent, value)
+  C.prototype.onFormulaChange = function (oEvent) {
+    const formula = oEvent.getParameter('formula')
+    this._handleSuggestions(oEvent, formula)
   }
 
   C.prototype.onSuggestionsRequested = function (oEvent) {
-    this._handleSuggestions(oEvent, oEvent.getSource().getValue())
+    this._handleSuggestions(oEvent, oEvent.getSource().getFormula())
   }
 
   C.prototype.onSuggestionSelected = function (oEvent) {
     const suggestion = oEvent.getParameter('item').getBindingContext().getObject()
     const caret = oEvent.getSource().getCaretPosition() - 1
-    const formula = oEvent.getSource().getValue()
+    const formula = oEvent.getSource().getFormula()
     const wordInfos = this._extractWordAt(formula, caret)
     if (wordInfos) {
       const [newFormula, leftBracketAdded] = this._insertSuggestion(formula, suggestion, wordInfos) // eslint-disable-line
-      oEvent.getSource().setValue(newFormula)
+      oEvent.getSource().setFormula(newFormula)
 
       let newCaretPosition = wordInfos.start + suggestion.name.length + 1
       if (leftBracketAdded) {

@@ -8,15 +8,15 @@ sap.ui.define([
       const FormulaEditor = Control.extend('control.FormulaEditor2', {
          metadata: {
             properties: {
-               value: { type: 'string', defaultValue: '' },
+               width: { type: 'sap.ui.core.CSSSize', defaultValue: '100%' },
+               height: { type: 'sap.ui.core.CSSSize', defaultValue: 'auto' },
+               formula: { type: 'string', defaultValue: '' },
                caretPosition: { type: 'int', defaultValue: 0 },
                functions: { type: 'array', defaultValue: [] },
                keywords: { type: 'array', defaultValue: [] },
                suggestions: { type: 'array', defaultValue: null },
                rows: { type: 'int', defaultValue: 2 },
                growingMaxLines: { type: 'int', defaultValue: 0 },
-               width: { type: 'sap.ui.core.CSSSize', defaultValue: '100%' },
-               height: { type: 'sap.ui.core.CSSSize', defaultValue: 'auto' },
                allowEnter: { type: 'boolean', defaultValue: true },
                scrollPosition: { type: 'object', defaultValue: null }
             },
@@ -24,7 +24,7 @@ sap.ui.define([
             events: {
                suggestionSelected: {},
                suggestionsRequested: {},
-               liveChange: {}
+               formulaChange: {}
             }
          },
          renderer: (oRm, self) => self._render(oRm)
@@ -81,34 +81,38 @@ sap.ui.define([
 
          
          const textarea = this._getTextArea()
-         textarea.addEventListener('input', this._onUpdate.bind(this), false)
-         textarea.addEventListener('keydown', this._onKeyDown.bind(this), false)
-         textarea.addEventListener('mouseup', this._updatePositions.bind(this), false)
-         
-         textarea.value = this.getValue()
-         
-         // this.attachBrowserEvent('focusout', (oEvent) => {
-            //    if (this._isPopupOpen() && !$.contains(this._container.getDomRef(), oEvent.relatedTarget)) {
-               //       this._hidePopup()
-               //    }
-               // })
+         textarea.value = this.getFormula()
                
          this._updateFormula()
          this._updatePositions()
+
+         textarea.addEventListener('input', this._onUpdate.bind(this), false)
+         textarea.addEventListener('keydown', this._onKeyDown.bind(this), false)
+         textarea.addEventListener('mouseup', this._onMouseUp.bind(this), false)
+                  
+         this.attachBrowserEvent('focusout', (oEvent) => {
+            if (this.contains(oEvent.relatedTarget)) {
+               this._hidePopup()
+            }
+         })
       }
      
-      FormulaEditor.prototype.setValue = function (value) {
-         this.setProperty('value', value, true)
+      FormulaEditor.prototype.contains = function (target) {
+         return this._isPopupOpen() && !$.contains(this._container.getDomRef(), target)
+      }
+
+      FormulaEditor.prototype.setFormula = function (formula) {
+         this.setProperty('formula', formula, true)
          const textarea = this._getTextArea()
          if (textarea) {
-            textarea.value = value
+            textarea.value = formula
             this._updateFormula()
          }
       }
 
-      FormulaEditor.prototype.setCaretPosition = function (value) {
-         this.setProperty('caretPosition', value, true)
-         this._setCaretPosition(value)
+      FormulaEditor.prototype.setCaretPosition = function (position) {
+         this.setProperty('caretPosition', position, true)
+         this._setCaretPosition(position)
       }
 
       FormulaEditor.prototype.setScrollPosition = function (position) {
@@ -130,11 +134,9 @@ sap.ui.define([
          const keywordsList = this.getKeywords().map((f) => f.name.toLowerCase())
 
          const rulesSet = {
-            // define: new RegExp(/[$A-Z_a-z0-9]/),
             object: new RegExp(/\[([^[\]]+)\]/),
             functions: functionList.length ? new RegExp(`(${functionList.join('|')})(?!\w|=)`) : null,
             keywords: keywordsList.length ? new RegExp(`(${keywordsList.join('|')}(?!\w|=))`) : null,
-            // string: new RegExp(/"(\\.|[^"\r\n])*"?|'(\\.|[^'\r\n])*'?/),
             op: new RegExp(/[\+\-\*\/=<>!]=?|[\(\)\{\}\[\]\.\|]/),
             string: new RegExp(/"(\\.|[^"\r\n])*"?|'(\\.|[^'\r\n])*'?/),
             number: new RegExp(/0x[\dA-Fa-f]+|-?(\d+\.?\d*|\.\d+)/),
@@ -280,6 +282,11 @@ sap.ui.define([
          }
       }
       
+      FormulaEditor.prototype._onMouseUp = function (oEvent) {
+         this._updatePositions()
+         this._hidePopup()
+      }
+
       FormulaEditor.prototype._onKeyDown = function (oEvent) {
          console.log("key=", oEvent.key)
          
@@ -343,8 +350,8 @@ sap.ui.define([
          }
       }
 
-      FormulaEditor.prototype._afterUpdate = function (valueChanged, updateCaret) {
-         if (!valueChanged && !updateCaret) {
+      FormulaEditor.prototype._afterUpdate = function (formulaChanged, updateCaret) {
+         if (!formulaChanged && !updateCaret) {
             return
          }
 
@@ -354,11 +361,11 @@ sap.ui.define([
                this._updatePositions()
             }
             
-            if (valueChanged) {
+            if (formulaChanged) {
                console.log('fireLiveChange')
-               const value = this._getTextArea().value
-               this.setProperty('value', value, true)
-               this.fireLiveChange({ value })
+               const formula = this._getTextArea().value
+               this.setProperty('formula', formula, true)
+               this.fireFormulaChange({ formula })
             }
          }, 0)
       }
