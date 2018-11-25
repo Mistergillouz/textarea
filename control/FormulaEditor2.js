@@ -79,20 +79,21 @@ sap.ui.define([
             this.getDomRef().style.minHeight = `${padding + (this._lineHeight * rows)}px`
          }
 
+         
          const textarea = this._getTextArea()
-         textarea.value = this.getValue()
-         this._colorize(textarea.value)
-
          textarea.addEventListener('input', this._onUpdate.bind(this), false)
          textarea.addEventListener('keydown', this._onKeyDown.bind(this), false)
-         textarea.addEventListener('mousedown', () => this._afterUpdate(true, true), false)
+         textarea.addEventListener('mouseup', this._updatePositions.bind(this), false)
+         
+         textarea.value = this.getValue()
          
          // this.attachBrowserEvent('focusout', (oEvent) => {
-         //    if (this._isPopupOpen() && !$.contains(this._container.getDomRef(), oEvent.relatedTarget)) {
-         //       this._hidePopup()
-         //    }
-         // })
-
+            //    if (this._isPopupOpen() && !$.contains(this._container.getDomRef(), oEvent.relatedTarget)) {
+               //       this._hidePopup()
+               //    }
+               // })
+               
+         this._updateFormula()
          this._updatePositions()
       }
      
@@ -103,8 +104,6 @@ sap.ui.define([
             textarea.value = value
             this._updateFormula()
          }
-
-         console.log('setValue')
       }
 
       FormulaEditor.prototype.setCaretPosition = function (value) {
@@ -132,6 +131,7 @@ sap.ui.define([
 
          const rulesSet = {
             // define: new RegExp(/[$A-Z_a-z0-9]/),
+            object: new RegExp(/\[([^[\]]+)\]/),
             functions: functionList.length ? new RegExp(`(${functionList.join('|')})(?!\w|=)`) : null,
             keywords: keywordsList.length ? new RegExp(`(${keywordsList.join('|')}(?!\w|=))`) : null,
             // string: new RegExp(/"(\\.|[^"\r\n])*"?|'(\\.|[^'\r\n])*'?/),
@@ -218,7 +218,7 @@ sap.ui.define([
 
          oRm.write(`<pre id="${this.getId()}--output">`)
          oRm.write('</pre>')
-         oRm.write('<label>')
+         oRm.write(`<label id="${this.getId()}--label">`)
          oRm.write(`<textarea rows="1" id="${this.getId()}--textarea" class="wingfe-te" spellcheck="false" wrap="false"/>`)
          oRm.write('</label>')
          oRm.write("</div>")
@@ -231,22 +231,26 @@ sap.ui.define([
       }
 
       FormulaEditor.prototype._updateFormula = function () {
+         const output = this._getOutput()
          const textarea = this._getTextArea()
-         var input = textarea.value;
+         var input = textarea.value
          if (input) {
             this._colorize(input)
-            const lines = input.split('\n');
-            textarea.rows = lines.length
          } else {
-            this._getOutput().innerHTML = ''
-            textarea.rows = 1
+            output.innerHTML = ''
          }
+
+         const label = this._getLabel()
+         const heigth = output.offsetHeight + this._lineHeight
+         label.style.height = heigth + 'px'
+         label.style.width = output.offsetWidth + 'px'
+         label.style.top = output.offsetTop + 'px'
+         label.style.left = output.offsetLeft + 'px'
       }
 
       FormulaEditor.prototype._updatePositions = function () {
-         console.log('_updatePositions')
-         this.setCaretPosition(this._getCaretPosition())
-         this.setScrollPosition(this._getScrollPosition())
+         this.setProperty('caretPosition', this._getCaretPosition(), true)
+         this.setProperty('scrollPosition', this._getScrollPosition(), true)
       }
 
       FormulaEditor.prototype.setSuggestions = function (suggestions) {
@@ -262,7 +266,6 @@ sap.ui.define([
 
       FormulaEditor.prototype._getScrollPosition = function () {
          const textarea = this._getTextArea()
-         console.log('top', textarea.scrollTop)
          return {
             left: textarea.scrollLeft,
             top: textarea.scrollTop
@@ -278,9 +281,11 @@ sap.ui.define([
       }
       
       FormulaEditor.prototype._onKeyDown = function (oEvent) {
-         console.log(oEvent.key)
-         let handled = false
-         let updateCaret = true
+         console.log("key=", oEvent.key)
+         
+         let preventDefault = false
+         let updateCaret = false
+
          if (this._isPopupOpen()) {
             let item = null
             switch (oEvent.key) {
@@ -293,58 +298,64 @@ sap.ui.define([
                      index = oEvent.key === 'ArrowDown' ? 0 : items.length - 1
                   } else {
                      index += oEvent.key === 'ArrowDown' ? 1 : -1
-                     if (index < 0) {
-                        index = items.length - 1
-                     } else if (index === items.length) {
-                        index = 0
-                     }
                   }
 
-                  this._list.setSelectedItem(items[index])
-                  handled = true
-                  updateCaret = false
+                  if (index >= 0 && index < items.length) {
+                     this._list.setSelectedItem(items[index])
+                  }
+                  
+                  preventDefault = true
                   break
 
                case 'Escape':
                   this._hidePopup()
-                  handled = true
+                  preventDefault = true
                   break
 
                case 'Enter':
                   item = this._list.getSelectedItem()
                   if (item) {
                      this._onItemSelected(item)
-                     updateCaret = false
                   }
-                  handled = true
+                  preventDefault = true
                   break
 
                default:
                   break
             }
 
-         } else if (oEvent.keyCode === 32 && oEvent.ctrlKey) {
-            this.fireSuggestionsRequested()
-            handled = false
+         } else if (oEvent.ctrlKey || oEvent.altKey) {
+            if (oEvent.ctrlKey && oEvent.keyCode === 32) {
+               this.fireSuggestionsRequested()   
+               preventDefault = true
+            }
          } else if (oEvent.key === 'Enter') {
             if (!this.getAllowEnter()) {
-               handled = false
+               preventDefault = true
             }
+         } else {
+            updateCaret = ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].indexOf(oEvent.key) !== -1
          }
 
-         this._afterUpdate(!handled, updateCaret)
-         if (handled) {
+         this._afterUpdate(false, updateCaret)
+         if (preventDefault) {
             oEvent.preventDefault()
          }
       }
 
-      FormulaEditor.prototype._afterUpdate = function (valueChanged, updatePosition) {
+      FormulaEditor.prototype._afterUpdate = function (valueChanged, updateCaret) {
+         if (!valueChanged && !updateCaret) {
+            return
+         }
+
          setTimeout(() => {
-            if (updatePosition) {
+            if (updateCaret) {
+               console.log('updateCaret')
                this._updatePositions()
             }
-   
+            
             if (valueChanged) {
+               console.log('fireLiveChange')
                const value = this._getTextArea().value
                this.setProperty('value', value, true)
                this.fireLiveChange({ value })
@@ -403,6 +414,10 @@ sap.ui.define([
 
       FormulaEditor.prototype._getOutput = function () {
          return $(`#${this.getId()}--output`)[0]
+      }
+
+      FormulaEditor.prototype._getLabel = function () {
+         return $(`#${this.getId()}--label`)[0]
       }
 
       FormulaEditor.prototype._calculateLineHeight = function () {

@@ -20,7 +20,7 @@
 }
 
 
-.wingfe, .wingfe label {
+.wingfe {
 	padding: 10px 12px;
 }
 
@@ -31,10 +31,8 @@
 }
 
 .wingfe textarea {
-	/* fallback for browsers without rgba */
+	width: 100%;
 	color: transparent !important;
-	/* make sure the alpha is low enough so it doesn't block the output layer */
-	color: rgba(0,0,0,.2) !important;
 }
 
 /* settings you shouldn't play with unless you have a good reason */
@@ -62,14 +60,13 @@
 .wingfe pre {
 	margin: 0;
 	overflow: initial;
+	white-space: pre-wrap;
 }
 
 .wingfe label {
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 100%;
-	height: 100%;
 	display: inline;
 	box-sizing: border-box;
 	-moz-box-sizing: border-box;
