@@ -59,8 +59,10 @@
 
 .wingfe pre {
 	margin: 0;
-	overflow: initial;
+	padding: 0;
 	white-space: pre-wrap;
+	overflow-wrap: break-word;
+	word-break: break-word;
 }
 
 .wingfe label {

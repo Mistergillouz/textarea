@@ -133,46 +133,82 @@ sap.ui.define([
          const functionList = this.getFunctions().map((f) => f.name.toLowerCase())
          const keywordsList = this.getKeywords().map((f) => f.name.toLowerCase())
 
-         const rulesSet = {
-            object: new RegExp(/\[([^[\]]+)\]/),
-            functions: functionList.length ? new RegExp(`(${functionList.join('|')})(?!\w|=)`) : null,
-            keywords: keywordsList.length ? new RegExp(`(${keywordsList.join('|')}(?!\w|=))`) : null,
-            op: new RegExp(/[\+\-\*\/=<>!]=?|[\(\)\{\}\[\]\.\|]/),
-            string: new RegExp(/"(\\.|[^"\r\n])*"?|'(\\.|[^'\r\n])*'?/),
-            number: new RegExp(/0x[\dA-Fa-f]+|-?(\d+\.?\d*|\.\d+)/),
-            other: new RegExp(/\S+/),
-            space: new RegExp(/\s+/)
-         }
+         this._rulesSet = [
+            {
+               name: 'object', 
+               reg: new RegExp(/\[([^[\]]+)\]/, 'gi') 
+            }, {
+               name: 'functions',
+               reg: functionList.length ? new RegExp(`(${functionList.join('|')})(?!\w|=)`, 'gi') : null
+            }, {
+               name: 'keywords',
+               reg: keywordsList.length ? new RegExp(`(${keywordsList.join('|')}(?!\w|=))`, 'gi') : null
+            }, {
+               name: 'op',
+               reg: new RegExp(/[\+\-\*\/=<>;!]=?|[\(\)\{\}\[\]\.\|]/, 'gi')
+            }, {
+               name: 'string',
+               reg: new RegExp(/"(\\.|[^"\r\n])*"?|'(\\.|[^'\r\n])*'?/, 'gi')
+            }, {
+               name: 'number',
+               reg: new RegExp(/0x[\dA-Fa-f]+|-?(\d+\.?\d*|\.\d+)/, 'gi')
+            }, {
+               name: 'other',
+               reg: new RegExp(/\S+/, 'gi')
+            }, {
+               name: 'space',
+               reg: new RegExp(/\s+/, 'gi')
+            }
+         ]
+      }
 
-         const rules = []
-         this._regexps = []
-         for (let rule in rulesSet) {
-            if (rulesSet[rule]) {
-               rules.push(rulesSet[rule].source)
-               this._regexps.push({
-                  name: rule,
-                  regexp: new RegExp(`^(${rulesSet[rule].source})$`, 'i')
+      FormulaEditor.prototype._tokenize = function (inpuText) {
+
+         const tokens = []
+         let text = String(inpuText)
+         let matchRule = null
+         while (text.length) {
+            const found = this._rulesSet.some((regexp) => {
+               let result = false
+               const matches = text.match(regexp.reg)
+               if (matches) {
+                  const matchText = matches.find((match) => text.indexOf(match) === 0)
+                  if (matchText) {
+                     result = true
+                     matchRule = {
+                        text: matchText,
+                        rule: regexp.name
+                     }
+                  }
+               }
+               return result
+            })
+   
+            if (found) {
+               tokens.push(matchRule)
+               text = text.substring(matchRule.text.length)
+            } else {
+               tokens.push({
+                  text,
+                  rule: 'other'
                })
+
+               break
             }
          }
 
-         this._masterRegExp = new RegExp(rules.join('|'), 'gi')
+         return tokens
       }
 
-      FormulaEditor.prototype._identify = function (string) {
-         const found = this._regexps.find((rule) => rule.regexp.test(string))
-         return found ? found.name : null
-      }
-      
       FormulaEditor.prototype._colorize = function (text) {
          const output = this._getOutput()
          const oldTokens = output.childNodes
-         const newTokens = text.match(this._masterRegExp)
+         const newTokens = this._tokenize(text)
          let firstDiff, lastDiffNew, lastDiffOld
 
          // find the first difference
          for (firstDiff = 0; firstDiff < newTokens.length && firstDiff < oldTokens.length; firstDiff++) {
-            if (newTokens[firstDiff] !== oldTokens[firstDiff].textContent) {
+            if (newTokens[firstDiff].text !== oldTokens[firstDiff].textContent) {
                break
             }
          }
@@ -184,22 +220,22 @@ sap.ui.define([
 
          // find the last difference
          for (lastDiffNew = newTokens.length - 1, lastDiffOld = oldTokens.length-1; firstDiff < lastDiffOld; lastDiffNew--, lastDiffOld--) {
-            if (newTokens[lastDiffNew] !== oldTokens[lastDiffOld].textContent) {
+            if (newTokens[lastDiffNew].text !== oldTokens[lastDiffOld].textContent) {
                break
             }
          }
 
          // update modified spans
          for (; firstDiff <= lastDiffOld; firstDiff++) {
-            oldTokens[firstDiff].className = this._identify(newTokens[firstDiff])
-            oldTokens[firstDiff].textContent = oldTokens[firstDiff].innerText = newTokens[firstDiff]
+            oldTokens[firstDiff].className = newTokens[firstDiff].rule
+            oldTokens[firstDiff].textContent = oldTokens[firstDiff].innerText = newTokens[firstDiff].text
          }
 
          // add in modified spans
          for (let insertionPt = oldTokens[firstDiff] || null; firstDiff <= lastDiffNew; firstDiff++) {
-            const span = document.createElement("span")
-            span.className = this._identify(newTokens[firstDiff])
-            span.textContent = span.innerText = newTokens[firstDiff]
+            const span = document.createElement('span')
+            span.className = newTokens[firstDiff].rule
+            span.textContent = span.innerText = newTokens[firstDiff].text
             output.insertBefore(span, insertionPt)
          }
       }
