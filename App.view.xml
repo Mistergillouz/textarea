@@ -3,7 +3,7 @@
    xmlns:control="control"
    controllerName="gs.App"
    xmlns:mvc="sap.ui.core.mvc">
-   <TextArea value="Hello World"/>
+   <TextArea value="Hello World" growingMaxLines="4" rows="1" growing="true"/>
       
    <control:FormulaEditor2
       class="wingTestFormulaEditor2"
