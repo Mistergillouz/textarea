@@ -5,6 +5,8 @@ sap.ui.define([
    function (Control, Popup) {
       "use strict";
 
+      const INVISIBLE_CHAR = '\u200c'
+
       const FormulaEditor = Control.extend('control.FormulaEditor2', {
          metadata: {
             properties: {
@@ -79,16 +81,13 @@ sap.ui.define([
             this.getDomRef().style.minHeight = `${padding + (this._lineHeight * rows)}px`
          }
 
-         
-         const textarea = this._getTextArea()
-         textarea.value = this.getFormula()
-               
-         this._updateFormula()
-         this._updatePositions()
+         this._updateFormula(this.getFormula())
+         this._savePositions()
 
-         textarea.addEventListener('input', this._onUpdate.bind(this), false)
-         textarea.addEventListener('keydown', this._onKeyDown.bind(this), false)
-         textarea.addEventListener('mouseup', this._onMouseUp.bind(this), false)
+         const output = this._getOutput()
+         output.addEventListener('input', this._onUpdate.bind(this), false)
+         output.addEventListener('keydown', this._onKeyDown.bind(this), false)
+         output.addEventListener('mouseup', this._onMouseUp.bind(this), false)
                   
          this.attachBrowserEvent('focusout', (oEvent) => {
             if (this.contains(oEvent.relatedTarget)) {
@@ -101,18 +100,22 @@ sap.ui.define([
          return this._isPopupOpen() && !$.contains(this._container.getDomRef(), target)
       }
 
+      FormulaEditor.prototype.getFormula = function () {
+         const formula = this.getProperty('formula')
+         return formula.replace(/\u200c/g, '')
+      }
+
       FormulaEditor.prototype.setFormula = function (formula) {
          this.setProperty('formula', formula, true)
-         const textarea = this._getTextArea()
-         if (textarea) {
-            textarea.value = formula
-            this._updateFormula()
+         const output = this._getOutput()
+         if (output) {
+            this._updateFormula(formula)
          }
       }
 
       FormulaEditor.prototype.setCaretPosition = function (position) {
          this.setProperty('caretPosition', position, true)
-         this._setCaretPosition(position)
+         this._setCaretPosition(this._getOutput(), position)
       }
 
       FormulaEditor.prototype.setScrollPosition = function (position) {
@@ -134,6 +137,10 @@ sap.ui.define([
          const keywordsList = this.getKeywords().map((f) => f.name.toLowerCase())
 
          this._rulesSet = [
+            {
+               name: 'invis', 
+               reg: new RegExp(/\u200c/, 'g') 
+            },
             {
                name: 'object', 
                reg: new RegExp(/\[([^[\]]+)\]/, 'gi') 
@@ -200,15 +207,14 @@ sap.ui.define([
          return tokens
       }
 
-      FormulaEditor.prototype._colorize = function (text) {
-         const output = this._getOutput()
+      FormulaEditor.prototype._colorize = function (output, text) {
          const oldTokens = output.childNodes
          const newTokens = this._tokenize(text)
          let firstDiff, lastDiffNew, lastDiffOld
 
          // find the first difference
          for (firstDiff = 0; firstDiff < newTokens.length && firstDiff < oldTokens.length; firstDiff++) {
-            if (newTokens[firstDiff].text !== oldTokens[firstDiff].textContent) {
+            if (oldTokens[firstDiff].nodeName === 'SPAN' && newTokens[firstDiff].text !== oldTokens[firstDiff].textContent) {
                break
             }
          }
@@ -220,7 +226,7 @@ sap.ui.define([
 
          // find the last difference
          for (lastDiffNew = newTokens.length - 1, lastDiffOld = oldTokens.length-1; firstDiff < lastDiffOld; lastDiffNew--, lastDiffOld--) {
-            if (newTokens[lastDiffNew].text !== oldTokens[lastDiffOld].textContent) {
+            if (oldTokens[lastDiffOld].nodeName === 'SPAN' && newTokens[lastDiffNew].text !== oldTokens[lastDiffOld].textContent) {
                break
             }
          }
@@ -242,7 +248,7 @@ sap.ui.define([
 
       // \[\b([a-zA-Z0-9\u00C0-\u00FF_ ])+\b\]/ -> dict object
       FormulaEditor.prototype._render = function (oRm) {
-         oRm.write('<div')
+         oRm.write('<div contenteditable="true" spellcheck="false"')
 
          oRm.addStyle('width', this.getWidth())
          oRm.addStyle('height', this.getHeight())
@@ -252,41 +258,60 @@ sap.ui.define([
          oRm.writeClasses(this)
 
          oRm.writeControlData(this)
-         oRm.write(">")
-
-         oRm.write(`<pre id="${this.getId()}--output">`)
-         oRm.write('</pre>')
-         oRm.write(`<label id="${this.getId()}--label">`)
-         oRm.write(`<textarea rows="1" id="${this.getId()}--textarea" class="wingfe-te" spellcheck="false" wrap="false"/>`)
-         oRm.write('</label>')
-         oRm.write("</div>")
+         oRm.write("/>")
       }
 
       
       FormulaEditor.prototype._onUpdate = function (oEvent) {
-         this._updateFormula()
-         this._afterUpdate(true, true)
+         setTimeout(() => {
+            this._savePositions()
+            console.log(this.getCaretPosition())
+            this.setFormula(this._getOutput().innerText)
+            this._setCaretPosition(this._getOutput(), this.getCaretPosition())
+            // this._afterUpdate(true, true)
+
+         }, 0)
       }
 
-      FormulaEditor.prototype._updateFormula = function () {
+      FormulaEditor.prototype._updateFormula = function (formula) {
          const output = this._getOutput()
-         const textarea = this._getTextArea()
-         var input = textarea.value
-         if (input) {
-            this._colorize(input)
-         } else {
+         if (!formula) {
             output.innerHTML = ''
+            return
          }
-
-         const label = this._getLabel()
-         const heigth = output.offsetHeight + this._lineHeight
-         label.style.height = heigth + 'px'
-         label.style.width = output.offsetWidth + 'px'
-         label.style.top = output.offsetTop + 'px'
-         label.style.left = output.offsetLeft + 'px'
+         
+         const nodes = output.childNodes
+         const parts = formula.replace(new RegExp(INVISIBLE_CHAR, 'g'), '').split('\n')
+         parts.forEach((part, index) => {
+            let div = nodes[index]
+            if (!div) {
+               div = document.createElement('div')
+               // div.style.height = this._lineHeight + 'px'
+               output.appendChild(div)
+            } else {
+               const divNodes = div.childNodes
+               for (let i = 0; i < divNodes.length; i++) {
+                  const divNode = divNodes[i]
+                  if (divNode.nodeType === 3) { // Text 
+                     const span = document.createElement('span')
+                     span.textContent = divNode.textContent
+                     div.insertBefore(span, divNode)
+                     div.removeChild(divNode)
+                  }
+               }
+            }
+            
+            this._colorize(div, part)           
+            const eol = document.createTextNode(INVISIBLE_CHAR)
+            div.appendChild(eol)
+         })
+         for (let i = parts.length; i < nodes.length; i++) {
+            output.removeChild(nodes[i])
+         }
+         
       }
 
-      FormulaEditor.prototype._updatePositions = function () {
+      FormulaEditor.prototype._savePositions = function () {
          this.setProperty('caretPosition', this._getCaretPosition(), true)
          this.setProperty('scrollPosition', this._getScrollPosition(), true)
       }
@@ -303,11 +328,11 @@ sap.ui.define([
       }
 
       FormulaEditor.prototype._getScrollPosition = function () {
-         const textarea = this._getTextArea()
-         return {
-            left: textarea.scrollLeft,
-            top: textarea.scrollTop
-         }
+         // const textarea = this._getTextArea()
+         // return {
+         //    left: textarea.scrollLeft,
+         //    top: textarea.scrollTop
+         // }
       }
 
       FormulaEditor.prototype._setScrollPosition = function (scroll) {
@@ -319,8 +344,9 @@ sap.ui.define([
       }
       
       FormulaEditor.prototype._onMouseUp = function (oEvent) {
-         this._updatePositions()
+         this._savePositions()
          this._hidePopup()
+         console.log('mouseUp', this.getCaretPosition())
       }
 
       FormulaEditor.prototype._onKeyDown = function (oEvent) {
@@ -375,7 +401,14 @@ sap.ui.define([
                this.fireSuggestionsRequested()   
                preventDefault = true
             }
-         } else if (oEvent.key === 'Enter' && !this.getAllowEnter()) {
+         } else if (oEvent.key === 'Enter') {
+            if (this.getAllowEnter()) {
+               this._fixLineBreak()
+               const position = this._getCaretPosition()
+               console.log('enter: ', position)
+               this.setFormula(this._getOutput().innerText)
+               this._setCaretPosition(this._getOutput(), position)
+            }
             preventDefault = true
          } else if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].indexOf(oEvent.key) !== -1) {
             updateCaret = true
@@ -388,6 +421,44 @@ sap.ui.define([
          }
       }
 
+      FormulaEditor.prototype._fixLineBreak = function () {
+         var sel, range;
+         if (window.getSelection) {
+             // IE9 and non-IE
+             sel = window.getSelection();
+             if (sel.getRangeAt && sel.rangeCount) {
+                 range = sel.getRangeAt(0);
+                 range.deleteContents();
+     
+                 // Range.createContextualFragment() would be useful here but is
+                 // only relatively recently standardized and is not supported in
+                 // some browsers (IE9, for one)
+                 var el = document.createElement("div");
+                 el.innerHTML = '<br>\u200c';
+                 var frag = document.createDocumentFragment(), node, lastNode;
+                 while ( (node = el.firstChild) ) {
+                     lastNode = frag.appendChild(node);
+                 }
+                 var firstNode = frag.firstChild;
+                 range.insertNode(frag);
+                 
+                 // Preserve the selection
+                 if (lastNode) {
+                     range = range.cloneRange();
+                     range.setStartAfter(lastNode);
+                     range.collapse(true);
+                     sel.removeAllRanges();
+                     sel.addRange(range);
+                 }
+             }
+         } else if ( (sel = document.selection) && sel.type != "Control") {
+             // IE < 9
+             var originalRange = sel.createRange();
+             originalRange.collapse(true);
+             sel.createRange().pasteHTML('<br>');
+         }
+     }
+
       FormulaEditor.prototype._afterUpdate = function (formulaChanged, updateCaret) {
          if (!formulaChanged && !updateCaret) {
             return
@@ -395,7 +466,7 @@ sap.ui.define([
 
          setTimeout(() => {
             if (updateCaret) {
-               this._updatePositions()
+               this._savePositions()
             }
             
             if (formulaChanged) {
@@ -432,14 +503,87 @@ sap.ui.define([
          return this._popup && this._popup.isOpen()
       }
 
-      FormulaEditor.prototype._setCaretPosition = function (pos) {
-         const textarea = this._getTextArea()
-         textarea.selectionStart = pos
-         textarea.selectionEnd = pos
+      FormulaEditor.prototype._setCaretPosition = function (el, sPos) {
+         var charIndex = 0, range = document.createRange();
+         range.setStart(el, 0);
+         range.collapse(true);
+         var nodeStack = [el], node, foundStart = false, stop = false;
+
+         while (!stop && (node = nodeStack.pop())) {
+            if (node.nodeType == 3) {
+               var nextCharIndex = charIndex + node.length;
+               if (!foundStart && sPos >= charIndex && sPos <= nextCharIndex) {
+                     range.setStart(node, sPos - charIndex);
+                     foundStart = true;
+               }
+               if (foundStart && sPos >= charIndex && sPos <= nextCharIndex) {
+                     range.setEnd(node, sPos - charIndex);
+                     stop = true;
+               }
+               charIndex = nextCharIndex;
+            } else {
+               var i = node.childNodes.length;
+               while (i--) {
+                     nodeStack.push(node.childNodes[i]);
+               }
+            }
+         }
+         const selection = window.getSelection();                 
+         selection.removeAllRanges();                       
+         selection.addRange(range);
+
+         }
+
+      FormulaEditor.prototype.__setCaretPosition = function (el, pos) {
+         // Loop through all child nodes
+         for (var node of el.childNodes) {
+            if (node.nodeType == 3) { // we have a text node
+               const length = node.length
+               if (length >= pos) {
+                  // finally add our range
+                  var range = document.createRange(),
+                     sel = window.getSelection();
+                  range.setStart(node, pos);
+                  range.collapse(true);
+                  sel.removeAllRanges();
+                  sel.addRange(range);
+                  return -1; // we are done
+               } else {
+                  pos -= length;
+               }
+            } else {
+               pos = this._setCaretPosition(node, pos);
+               if (pos == -1) {
+                  return -1; // no need to finish the for loop
+               }
+            }
+         }
+         return pos; // needed because of recursion stuff
       }
 
-      FormulaEditor.prototype._getCaretPosition = function () {
-         return this._getTextArea().selectionStart
+      FormulaEditor.prototype._getCaretPosition = function () {         
+         const element = this._getOutput()
+         const doc = element.ownerDocument || element.document;
+         const win = doc.defaultView || doc.parentWindow;
+         let caretOffset = 0;
+         let sel;
+         if (typeof win.getSelection !== 'undefined') {
+            sel = win.getSelection()
+            if (sel.rangeCount > 0) {
+               const range = win.getSelection().getRangeAt(0)
+               const preCaretRange = range.cloneRange()
+               preCaretRange.selectNodeContents(element)
+               preCaretRange.setEnd(range.endContainer, range.endOffset)
+               caretOffset = preCaretRange.toString().length
+            }
+         } else if ((sel = doc.selection) && sel.type != 'Control') {
+            var textRange = sel.createRange()
+            var preCaretTextRange = doc.body.createTextRange()
+            preCaretTextRange.moveToElementText(element)
+            preCaretTextRange.setEndPoint('EndToEnd', textRange)
+            caretOffset = preCaretTextRange.text.length
+         }
+         return caretOffset;
       }
 
       FormulaEditor.prototype._onSelectionChanged = function (oEvent) {
@@ -451,16 +595,8 @@ sap.ui.define([
          this._hidePopup()
       }
 
-      FormulaEditor.prototype._getTextArea = function () {
-         return $(`#${this.getId()}--textarea`)[0]
-      }
-
-      FormulaEditor.prototype._getOutput = function () {
-         return $(`#${this.getId()}--output`)[0]
-      }
-
-      FormulaEditor.prototype._getLabel = function () {
-         return $(`#${this.getId()}--label`)[0]
+     FormulaEditor.prototype._getOutput = function () {
+         return this.getDomRef()
       }
 
       FormulaEditor.prototype._calculateLineHeight = function () {
