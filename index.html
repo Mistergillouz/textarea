@@ -21,14 +21,9 @@
       </script>
       <script>
          sap.ui.getCore().attachInit(function () {
-            fetch('save/dico.json')
-            .then(response => response.json())
-            .then(data => {
-               sap.ui.xmlview({
-                  viewName : "gs.App",
-                  viewData: data
-               }).placeAt("content");
-            })
+            sap.ui.xmlview({
+               viewName : "gs.App"
+            }).placeAt("content");
          });
       </script>
    </head>

@@ -115,7 +115,7 @@ sap.ui.define([
 
       FormulaEditor.prototype.setCaretPosition = function (position) {
          this.setProperty('caretPosition', position, true)
-         this._setCaretPosition(this._getOutput(), position)
+         this._setCaretPosition(position)
       }
 
       FormulaEditor.prototype.setScrollPosition = function (position) {
@@ -273,8 +273,7 @@ sap.ui.define([
             this._savePositions()
             console.log(this.getCaretPosition())
             this.setFormula(this._getOutput().innerText)
-            this._setCaretPosition(this._getOutput(), this.getCaretPosition())
-            // this._afterUpdate(true, true)
+            this._setCaretPosition(this.getCaretPosition())
 
          }, 0)
       }
@@ -292,27 +291,27 @@ sap.ui.define([
             let div = nodes[index]
             if (!div) {
                div = document.createElement('div')
-               // div.style.height = this._lineHeight + 'px'
+               div.style.height = this._lineHeight + 'px'
                output.appendChild(div)
                this._colorize(div, part)
             } 
-            if (part.length) {
-               if (div.nodeName !== 'DIV') {
-                  const newDiv = document.createElement('div')
-                  for (let i = 0; i < div.childNodes.length; i++) {
-                     newDiv.appendChild(div.childNodes[i])
+            else if (div.nodeName === 'DIV') {
+               for (let i = div.childNodes.length - 1; i >= 0; i--) {
+                  const childNode = div.childNodes[i]
+                  if (childNode.nodeName === 'SPAN' && childNode.innerHTML === '<br>') {
+                     childNode.innerHTML = ''
                   }
-                  output.insertBefore(newDiv, div)
-                  output.removeChild(div)
                }
+               // output.insertBefore(newDiv, div)
+               // output.removeChild(div)
+            }
                // this._fixNodes(newDiv)
                this._colorize(div, part)
-            } 
          })
 
-         for (let i = parts.length; i < nodes.length; i++) {
-            output.removeChild(nodes[i])
-         }         
+         // for (let i = parts.length; i < nodes.length; i++) {
+         //    output.removeChild(nodes[i])
+         // }         
       }
 
       FormulaEditor.prototype._fixNodes = function (element) {
@@ -353,6 +352,7 @@ sap.ui.define([
       }
 
       FormulaEditor.prototype._setScrollPosition = function (scroll) {
+         let i = 1
          if (scroll) {
             const textarea = this._getTextArea()
             textarea.scrollLeft = scroll.left
@@ -368,8 +368,6 @@ sap.ui.define([
 
       FormulaEditor.prototype._onKeyDown = function (oEvent) {
          let preventDefault = false
-         let updateCaret = false
-
          if (this._isPopupOpen()) {
             let item = null
             switch (oEvent.key) {
@@ -415,23 +413,16 @@ sap.ui.define([
 
          } else if (oEvent.ctrlKey || oEvent.altKey) {
             if (oEvent.ctrlKey && oEvent.keyCode === 32) {
+               this._updatePositions()
                this.fireSuggestionsRequested()   
                preventDefault = true
             }
-         } else if (oEvent.key === 'Enter') {
-            // if (this.getAllowEnter()) {
-            //    setTimeout(() => {
-            //       this._fixLineBreak()
-            //       this._onUpdate()
-            //    }, 0)
-            // }
-            // preventDefault = true
+         } else if (oEvent.key === 'Enter' && !this.getAllowEnter()) {
+            preventDefault = true
          } else if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].indexOf(oEvent.key) !== -1) {
-            updateCaret = true
             this._hidePopup()
          }
 
-         this._afterUpdate(false, updateCaret)
          if (preventDefault) {
             oEvent.preventDefault()
          }
@@ -519,9 +510,8 @@ sap.ui.define([
          return this._popup && this._popup.isOpen()
       }
       
-      FormulaEditor.prototype._setCaretPosition = function (element, caretPos) {
-         console.log('_setCaretPosition', caretPos)
-         const nodes = element.childNodes
+      FormulaEditor.prototype._setCaretPosition = function (caretPos) {
+         const nodes = this._getOutput().childNodes
          let offset = caretPos, row = null
          for (let i = 0; i < nodes.length; i++) {
             const rowLength = nodes[i].innerText.length
@@ -612,6 +602,10 @@ sap.ui.define([
          return height
       }
 
+      FormulaEditor.prototype._updatePositions = function () {
+         this.setCaretPosition(this._getCaretPosition())
+         this.setScrollPosition(this._getScrollPosition())
+      }
       return FormulaEditor
    })
 
