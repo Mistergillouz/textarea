@@ -5,8 +5,6 @@ sap.ui.define([
    function (Control, Popup) {
       "use strict";
 
-      const INVISIBLE_CHAR = '\u200c'
-
       const FormulaEditor = Control.extend('control.FormulaEditor2', {
          metadata: {
             properties: {
@@ -100,11 +98,6 @@ sap.ui.define([
          return this._isPopupOpen() && !$.contains(this._container.getDomRef(), target)
       }
 
-      FormulaEditor.prototype.getFormula = function () {
-         const formula = this.getProperty('formula')
-         return formula.replace(/\u200c/g, '')
-      }
-
       FormulaEditor.prototype.setFormula = function (formula) {
          this.setProperty('formula', formula, true)
          const output = this._getOutput()
@@ -135,11 +128,7 @@ sap.ui.define([
       FormulaEditor.prototype._buildRules = function () {
          const functionList = this.getFunctions().map((f) => f.name.toLowerCase())
          const keywordsList = this.getKeywords().map((f) => f.name.toLowerCase())
-         this._rulesSet = [
-            {
-               name: 'invis', 
-               reg: new RegExp(/\u200c/g) 
-            },
+         this._rulesSet = [            
             {
                name: 'object', 
                reg: new RegExp(/\[([^[\]]+)\]/gi) 
@@ -285,7 +274,7 @@ sap.ui.define([
          }
          
          const nodes = output.childNodes
-         const parts = formula.replace(new RegExp(INVISIBLE_CHAR, 'g'), '').split('\n')
+         const parts = formula.split('\n')
          parts.forEach((part, index) => {
             let rowElement = nodes[index]
             if (!rowElement) {
@@ -301,18 +290,19 @@ sap.ui.define([
                output.insertBefore(newRowElement, rowElement)
                output.removeChild(rowElement)
                rowElement = newRowElement
-            } else if (rowElement.nodeName === 'DIV') {
+            } 
+            
+            if (rowElement.nodeName === 'DIV') {
                for (let i = rowElement.childNodes.length - 1; i >= 0; i--) {
                   const childNode = rowElement.childNodes[i]
                   if (childNode.nodeName === 'SPAN') {
-                     const text =  childNode.innerHTML.replace(/<br>/g, '')
+                     const text =  this._purgeText(childNode.innerHTML)
                      if (text) {
                         childNode.innerHTML = text
                      } else {
                         rowElement.removeChild(childNode)
                      }
                   } else {
-                     debugger
                      const span = this._toSpan(childNode)
                      if (span) {
                         rowElement.insertBefore(span, childNode)
@@ -478,7 +468,7 @@ sap.ui.define([
          const rows = this._getOutput().childNodes
          for (let i = 0; i < rows.length; i++) {
             const text = rows[i].innerText || rows[i].textContent
-            parts.push(text.replace(/\n/g, ''))
+            parts.push(this._purgeText(text))
          }
 
          return parts.join('\n')
@@ -536,7 +526,7 @@ sap.ui.define([
                row = rowNodes[i]
                break
             }
-            offset += rowNodes[i].innerText.length + 1
+            offset += this._purgeText(rowNodes[i].innerText).length + 1
          }
 
          if (row) {
@@ -597,6 +587,10 @@ sap.ui.define([
          }
 
          return null            
+      }
+
+      FormulaEditor.prototype._purgeText = function (text) {
+         return text.replace(/\n/g, '').replace(/<br>/g, '')
       }
 
       return FormulaEditor
