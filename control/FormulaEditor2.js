@@ -135,15 +135,14 @@ sap.ui.define([
       FormulaEditor.prototype._buildRules = function () {
          const functionList = this.getFunctions().map((f) => f.name.toLowerCase())
          const keywordsList = this.getKeywords().map((f) => f.name.toLowerCase())
-
          this._rulesSet = [
             {
                name: 'invis', 
-               reg: new RegExp(/\u200c/, 'g') 
+               reg: new RegExp(/\u200c/g) 
             },
             {
                name: 'object', 
-               reg: new RegExp(/\[([^[\]]+)\]/, 'gi') 
+               reg: new RegExp(/\[([^[\]]+)\]/gi) 
             }, {
                name: 'functions',
                reg: functionList.length ? new RegExp(`(${functionList.join('|')})(?!\w|=)`, 'gi') : null
@@ -152,24 +151,24 @@ sap.ui.define([
                reg: keywordsList.length ? new RegExp(`(${keywordsList.join('|')}(?!\w|=))`, 'gi') : null
             }, {
                name: 'op',
-               reg: new RegExp(/[\+\-\*\/=<>;!]=?|[\(\)\{\}\[\]\.\|]/, 'gi')
+               reg: new RegExp(/[\+\-\*\/=<>;!]=?|[\(\)\{\}\[\]\.\|]/gi)
             }, {
                name: 'string',
-               reg: new RegExp(/"(\\.|[^"\r\n])*"?|'(\\.|[^'\r\n])*'?/, 'gi')
+               reg: new RegExp(/"(\\.|[^"\r\n])*"?|'(\\.|[^'\r\n])*'?/gi)
             }, {
                name: 'number',
-               reg: new RegExp(/0x[\dA-Fa-f]+|-?(\d+\.?\d*|\.\d+)/, 'gi')
+               reg: new RegExp(/0x[\dA-Fa-f]+|-?(\d+\.?\d*|\.\d+)/gi)
             }, {
                name: 'other',
-               reg: new RegExp(/\S+/, 'gi')
+               reg: new RegExp(/\S+/gi)
             }, {
                name: 'space',
-               reg: new RegExp(/\s+/, 'gi')
+               reg: new RegExp(/\s+/gi)
             }
          ]
       }
-
-      FormulaEditor.prototype._tokenize = function (inpuText) {
+      
+            FormulaEditor.prototype._tokenize = function (inpuText) {
 
          const tokens = []
          let text = String(inpuText)
@@ -272,7 +271,7 @@ sap.ui.define([
          setTimeout(() => {
             this._savePositions()
             console.log(this.getCaretPosition())
-            this.setFormula(this._getOutput().innerText)
+            this.setFormula(this._getFormula())
             this._setCaretPosition(this.getCaretPosition())
 
          }, 0)
@@ -288,43 +287,45 @@ sap.ui.define([
          const nodes = output.childNodes
          const parts = formula.replace(new RegExp(INVISIBLE_CHAR, 'g'), '').split('\n')
          parts.forEach((part, index) => {
-            let div = nodes[index]
-            if (!div) {
-               div = document.createElement('div')
-               div.style.height = this._lineHeight + 'px'
-               output.appendChild(div)
-               this._colorize(div, part)
-            } 
-            else if (div.nodeName === 'DIV') {
-               for (let i = div.childNodes.length - 1; i >= 0; i--) {
-                  const childNode = div.childNodes[i]
-                  if (childNode.nodeName === 'SPAN' && childNode.innerHTML === '<br>') {
-                     childNode.innerHTML = ''
+            let rowElement = nodes[index]
+            if (!rowElement) {
+               rowElement = this._newRow()
+               output.appendChild(rowElement)
+               this._colorize(rowElement, part)
+            } else if (rowElement.nodeType === Node.TEXT_NODE) {
+               const newRowElement = this._newRow()
+               const span = this._toSpan(rowElement)
+               if (span) {
+                  newRowElement.appendChild(span)
+               }
+               output.insertBefore(newRowElement, rowElement)
+               output.removeChild(rowElement)
+               rowElement = newRowElement
+            } else if (rowElement.nodeName === 'DIV') {
+               for (let i = rowElement.childNodes.length - 1; i >= 0; i--) {
+                  const childNode = rowElement.childNodes[i]
+                  if (childNode.nodeName === 'SPAN') {
+                     const text =  childNode.innerHTML.replace(/<br>/g, '')
+                     if (text) {
+                        childNode.innerHTML = text
+                     } else {
+                        rowElement.removeChild(childNode)
+                     }
+                  } else {
+                     debugger
+                     const span = this._toSpan(childNode)
+                     if (span) {
+                        rowElement.insertBefore(span, childNode)
+                     }
+                     rowElement.removeChild(childNode)
                   }
                }
-               // output.insertBefore(newDiv, div)
-               // output.removeChild(div)
+            } else {
+               debugger
             }
-               // this._fixNodes(newDiv)
-               this._colorize(div, part)
+            
+            this._colorize(rowElement, part)
          })
-
-         // for (let i = parts.length; i < nodes.length; i++) {
-         //    output.removeChild(nodes[i])
-         // }         
-      }
-
-      FormulaEditor.prototype._fixNodes = function (element) {
-         const divNodes = element.childNodes
-         for (let i = 0; i < divNodes.length; i++) {
-            const divNode = divNodes[i]
-            if (divNode.nodeName !== 'SPAN') {
-               const span = document.createElement('span')
-               span.textContent = divNode.textContent
-               element.insertBefore(span, divNode)
-               element.removeChild(divNode)
-            }
-         }
       }
 
       FormulaEditor.prototype._savePositions = function () {
@@ -344,11 +345,11 @@ sap.ui.define([
       }
 
       FormulaEditor.prototype._getScrollPosition = function () {
-         // const textarea = this._getTextArea()
-         // return {
-         //    left: textarea.scrollLeft,
-         //    top: textarea.scrollTop
-         // }
+         const textarea = this._getOutput()
+         return {
+            left: textarea.scrollLeft,
+            top: textarea.scrollTop
+         }
       }
 
       FormulaEditor.prototype._setScrollPosition = function (scroll) {
@@ -428,44 +429,6 @@ sap.ui.define([
          }
       }
 
-      FormulaEditor.prototype._fixLineBreak = function () {
-         var sel, range;
-         if (window.getSelection) {
-             // IE9 and non-IE
-             sel = window.getSelection();
-             if (sel.getRangeAt && sel.rangeCount) {
-                 range = sel.getRangeAt(0);
-                 range.deleteContents();
-     
-                 // Range.createContextualFragment() would be useful here but is
-                 // only relatively recently standardized and is not supported in
-                 // some browsers (IE9, for one)
-                 var el = document.createElement("div");
-                 el.innerHTML = '<br>\u200c';
-                 var frag = document.createDocumentFragment(), node, lastNode;
-                 while ( (node = el.firstChild) ) {
-                     lastNode = frag.appendChild(node);
-                 }
-                 var firstNode = frag.firstChild;
-                 range.insertNode(frag);
-                 
-                 // Preserve the selection
-                 if (lastNode) {
-                     range = range.cloneRange();
-                     range.setStartAfter(lastNode);
-                     range.collapse(true);
-                     sel.removeAllRanges();
-                     sel.addRange(range);
-                 }
-             }
-         } else if ( (sel = document.selection) && sel.type != "Control") {
-             // IE < 9
-             var originalRange = sel.createRange();
-             originalRange.collapse(true);
-             sel.createRange().pasteHTML('<br>');
-         }
-     }
-
       FormulaEditor.prototype._afterUpdate = function (formulaChanged, updateCaret) {
          if (!formulaChanged && !updateCaret) {
             return
@@ -508,6 +471,17 @@ sap.ui.define([
 
       FormulaEditor.prototype._isPopupOpen = function () {
          return this._popup && this._popup.isOpen()
+      }
+      
+      FormulaEditor.prototype._getFormula = function () {
+         const parts = []
+         const rows = this._getOutput().childNodes
+         for (let i = 0; i < rows.length; i++) {
+            const text = rows[i].innerText || rows[i].textContent
+            parts.push(text.replace(/\n/g, ''))
+         }
+
+         return parts.join('\n')
       }
       
       FormulaEditor.prototype._setCaretPosition = function (caretPos) {
@@ -606,6 +580,25 @@ sap.ui.define([
          this.setCaretPosition(this._getCaretPosition())
          this.setScrollPosition(this._getScrollPosition())
       }
+
+      FormulaEditor.prototype._newRow = function () {
+         const div = document.createElement('div')
+         div.style.minHeight = this._lineHeight + 'px'
+         div.classList.add('winfe-row')
+         return div
+      }
+      
+      FormulaEditor.prototype._toSpan = function (textElement) {
+         const text = textElement.textContent
+         if (text.length) {
+            const span = document.createElement('span')
+            span.innerText = text
+            return span
+         }
+
+         return null            
+      }
+
       return FormulaEditor
    })
 

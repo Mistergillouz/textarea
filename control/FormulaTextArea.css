@@ -7,37 +7,15 @@
    padding: 0.625rem 0 0.625rem 0.75rem;   
 }
 
-.wingFormulaEditor-inner {
-   outline: 0;
-   display: inline-block;
-   overflow: auto;
-   width: 100%;
-}
-
 .wingMkBlue {
    color: blue;
    font-weight: bold;
 }
 
-
-.wingfe {
-	padding: 10px 12px;
-}
-
-.wingfe, .wingfe pre, .wingfe textarea {
-	font-size: 14px;
-	font-family: Arial,Helvetica,sans-serif;
-	color: black;
-}
-
-.wingfe textarea {
-	width: 100%;
-	color: transparent !important;
-}
-
 /* settings you shouldn't play with unless you have a good reason */
 
 .wingfe {
+	padding: 10px 12px;
 	overflow: auto;
    position: relative;
    background: white;
@@ -51,43 +29,10 @@
    border-radius: 4px;
    -moz-border-radius: 4px;
    -webkit-border-radius: 4px;
+	caret-color: black;
 }
 
-.wingfe textarea {
-   caret-color: black;
-}
-
-.wingfe pre {
-	margin: 0;
-	padding: 0;
-	white-space: pre-wrap;
-	overflow-wrap: break-word;
-	word-break: break-word;
-}
-
-.wingfe label {
-	position: absolute;
-	top: 0;
-	left: 0;
-	display: inline;
-	box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	-webkit-box-sizing: border-box;
-	cursor: text;
-}
-
-.wingfe textarea {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	background: 0;
-	outline: none;
-	resize: none;
-	min-width: 100%;
-	min-height: 100%;
-	overflow: hidden;
-	color: transparent !important;
-
+.wingfe div {
 }
 
 .wingfe .functions {
