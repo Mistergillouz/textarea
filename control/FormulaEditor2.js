@@ -95,7 +95,7 @@ sap.ui.define([
       }
      
       FormulaEditor.prototype.contains = function (target) {
-         return this._isPopupOpen() && !$.contains(this._container.getDomRef(), target)
+         return this._isPopupOpen() && $.contains(this._container.getDomRef(), target)
       }
 
       FormulaEditor.prototype.setFormula = function (formula) {
@@ -268,11 +268,6 @@ sap.ui.define([
 
       FormulaEditor.prototype._updateFormula = function (formula) {
          const output = this._getOutput()
-         if (!formula) {
-            output.innerHTML = ''
-            return
-         }
-         
          const nodes = output.childNodes
          const parts = formula.split('\n')
          parts.forEach((part, index) => {
