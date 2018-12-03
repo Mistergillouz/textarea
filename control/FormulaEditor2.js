@@ -276,43 +276,38 @@ sap.ui.define([
                rowElement = this._newRow()
                output.appendChild(rowElement)
                this._colorize(rowElement, part)
-            } else if (rowElement.nodeType === Node.TEXT_NODE) {
-               const newRowElement = this._newRow()
-               const span = this._toSpan(rowElement)
-               if (span) {
-                  newRowElement.appendChild(span)
-               }
-               output.insertBefore(newRowElement, rowElement)
-               output.removeChild(rowElement)
-               rowElement = newRowElement
-            } 
-            
-            if (rowElement.nodeName === 'DIV') {
-               for (let i = rowElement.childNodes.length - 1; i >= 0; i--) {
-                  const childNode = rowElement.childNodes[i]
-                  if (childNode.nodeName === 'SPAN') {
-                     const text =  this._purgeText(childNode.innerHTML)
-                     if (text) {
-                        childNode.innerHTML = text
-                     } else {
-                        rowElement.removeChild(childNode)
-                     }
-                  } else {
-                     const span = this._toSpan(childNode)
-                     if (span) {
-                        rowElement.insertBefore(span, childNode)
-                     }
-                     rowElement.removeChild(childNode)
-                  }
-               }
             } else {
-               debugger
-            }
-            
+               this._fixNodes(rowElement)
+               if (rowElement.nodeName !== 'DIV') {
+                  const newRowElement = this._newRow()
+                  newRowElement.appendChild(rowElement)
+                  rowElement = newRowElement
+               } 
+            }            
             this._colorize(rowElement, part)
          })
       }
 
+      FormulaEditor.prototype._fixNodes = function (node) {
+         for (let i = node.childNodes.length - 1; i >= 0; i--) {
+            const childNode = node.childNodes[i]
+            if (childNode.nodeName === 'SPAN') {
+               const text =  this._purgeText(childNode.innerHTML)
+               if (text) {
+                  childNode.innerHTML = text
+               } else {
+                  childNode.innerHTML = ''
+                  node.removeChild(childNode)
+               }
+            } else {
+               const span = this._toSpan(childNode)
+               if (span) {
+                  node.insertBefore(span, childNode)
+               }
+               node.removeChild(childNode)
+            }
+         }
+      }
       FormulaEditor.prototype._savePositions = function () {
          this.setProperty('caretPosition', this._getCaretPosition(), true)
          this.setProperty('scrollPosition', this._getScrollPosition(), true)
