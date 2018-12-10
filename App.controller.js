@@ -1,6 +1,7 @@
 sap.ui.define([
-  "sap/ui/core/mvc/Controller"
-], function (Controller) {
+  "sap/ui/core/mvc/Controller",
+  'ui/EnterNamePopoper'
+], function (Controller, EnterNamePopover) {
   "use strict";
 
   const C = Controller.extend('gs.App', {})
@@ -14,6 +15,18 @@ sap.ui.define([
 
   C.prototype.onInit = function () {
     this.byId('formula-editor2').setFunctions(this._getFunctions())
+  }
+
+  C.prototype.onShowFragment = function (oEvent) {
+    const popover = new EnterNamePopover(this, {
+      title: 'Titre',
+      buttonText: 'Create',
+      text: 'Ceci est le texte',
+      value: 'Valeur',
+      cb: (result) => console.log(result)
+    })
+
+    popover.show(oEvent.getSource())
   }
 
   C.prototype.onFormulaChange = function (oEvent) {

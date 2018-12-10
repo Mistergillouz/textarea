@@ -33,6 +33,8 @@ sap.ui.define([
       FormulaEditor.prototype.init = function () {
          Control.prototype.init.call(this)
 
+         const browser = sap.ui.Device.browser
+         console.log(browser)
          this._list = new sap.m.List({
             mode: 'SingleSelectMaster'
          })

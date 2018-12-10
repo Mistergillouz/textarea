@@ -3,6 +3,8 @@
    xmlns:control="control"
    controllerName="gs.App"
    xmlns:mvc="sap.ui.core.mvc">
+
+   <Button id="input" text="Fragment" press="onShowFragment"/>
    <TextArea value="Hello World" growingMaxLines="4" rows="1" growing="true"/>
       
    <control:FormulaEditor2
@@ -14,4 +16,6 @@
       suggestionSelected="onSuggestionSelected"
       suggestionsRequested="onSuggestionsRequested"
       formula="=Ancestor(100) + [Coucou] + if true Then toto"/>
+
+
 </mvc:View>
