@@ -4,6 +4,7 @@ const babel = require('gulp-babel');
 const vinyl = require('vinyl-fs');
 const map = require('map-stream')
 const plumber = require('gulp-plumber')
+const glob = require("glob")
 
 const excludes = [
    '!dist/**',
@@ -15,7 +16,7 @@ const excludes = [
 ]
 
 function toDist(file) {
-   const distPath = path.join('dist/', file.base.substring(file.cwd.length + 1))
+   const distPath = path.join('dist/', file.dirname.substring(file.cwd.length + 1))
    return distPath
 }
 
@@ -24,9 +25,8 @@ function isJavacript(file) {
 }
 
 function processFile(file) {
-   console.log('>', JSON.stringify(file))
-
    const dest = toDist(file)
+   console.log(file.path, dest)
    if (isJavacript(file)) {
       gulp.src(file.path)
          .pipe(plumber())
@@ -44,7 +44,6 @@ gulp.task('watch', function () {
 });
 
 gulp.task('build', () => {
-
    const src = vinyl.src(['**', ...excludes], { read: false })
       .pipe(map((file, cb) => {
          processFile(file)
@@ -52,6 +51,12 @@ gulp.task('build', () => {
       }))
 })
 
+gulp.task('glob', () => {
+   glob('**', { nodir: true, ignore: ['node_modules/**', 'sapui/**', '*.zip'] }, function (er, files) {
+      console.log(files)
+   })
+})
 
-gulp.task('default', ['watch', 'build']);
+
+gulp.task('default', ['watch', 'build', 'glob']);
 
