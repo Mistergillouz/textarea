@@ -1,0 +1,434 @@
+[
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "ABS",
+      "name": "Abs",
+      "description": "Returns the absolute value of a number",
+      "syntax": "num Abs(number)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "CEIL",
+      "name": "Ceil",
+      "description": "Rounds a number up to the nearest integer\t",
+      "syntax": "num Ceil(number)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "COS",
+      "name": "Cos",
+      "description": "Returns the cosine of an angle",
+      "syntax": "num Cos(number)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "EUROCONVERTFROM",
+      "name": "EuroConvertFrom",
+      "description": "Converts a euro amount to another currency",
+      "syntax": "num EuroConvertFrom(euro_amount;curr_code;round_level)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "EUROCONVERTTO",
+      "name": "EuroConvertTo",
+      "description": "Converts an amount to euros",
+      "syntax": "num EuroConvertTo(noneuro_amount;curr_code;round_level)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "EUROFROMROUNDERROR",
+      "name": "EuroFromRoundError",
+      "description": "Returns the rounding error in a conversion from euros",
+      "syntax": "num EuroFromRoundError(euro_amount;curr_code;round_level)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "EUROTOROUNDERROR",
+      "name": "EuroToRoundError",
+      "description": "Returns the rounding error in a conversion to euros",
+      "syntax": "num EuroToRoundError(noneuro_amount;curr_code;round_level)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "EXP",
+      "name": "Exp",
+      "description": "Returns an exponential (e raised to a power)",
+      "syntax": "num Exp(number)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "FACT",
+      "name": "Fact",
+      "description": "Returns the factorial of an integer",
+      "syntax": "num Fact(number)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "FLOOR",
+      "name": "Floor",
+      "description": "Rounds a number down to the nearest integer",
+      "syntax": "int Floor(number)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "LN",
+      "name": "Ln",
+      "description": "Returns the natural logarithm of a number",
+      "syntax": "num Ln(number)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "LOG",
+      "name": "Log",
+      "description": "Returns the base n logarithm of a number",
+      "syntax": "num Log(number;base)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "LOG10",
+      "name": "Log10",
+      "description": "Returns the base 10 logarithm of a number",
+      "syntax": "num Log10(number)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "MOD",
+      "name": "Mod",
+      "description": "Returns the remainder from the division of two numbers",
+      "syntax": "num Mod(dividend;divisor)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "POWER",
+      "name": "Power",
+      "description": "Returns a number raised to a power",
+      "syntax": "num Power(number;power)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "RANK",
+      "name": "Rank",
+      "description": "Ranks a measure by dimensions",
+      "syntax": "int Rank(measure[;ranking_dims][;Top|Bottom][;reset_dims])"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "ROUND",
+      "name": "Round",
+      "description": "Rounds a number ",
+      "syntax": "num Round(number;round_level)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "SIGN",
+      "name": "Sign",
+      "description": "Returns the sign of a number",
+      "syntax": "int Sign(number)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "SIN",
+      "name": "Sin",
+      "description": "Returns the sine of an angle",
+      "syntax": "num Sin(number)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "SQRT",
+      "name": "Sqrt",
+      "description": "Returns the square root of a number",
+      "syntax": "num Sqrt(number)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "TAN",
+      "name": "Tan",
+      "description": "Returns the tangent of an angle",
+      "syntax": "num Tan(number)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "TODECIMAL",
+      "name": "ToDecimal",
+      "description": "Returns a string or a number as a decimal.",
+      "syntax": "decimal ToDecimal(string or num)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "TONUMBER",
+      "name": "ToNumber",
+      "description": "Returns a string or a decimal as a number.",
+      "syntax": "num ToNumber(string)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Numeric",
+      "id": "TRUNCATE",
+      "name": "Truncate",
+      "description": "Truncates a number",
+      "syntax": "num Truncate(number;truncate_level)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Set",
+      "id": "ANCESTOR",
+      "name": "Ancestor",
+      "description": "Returns an ancestor member of a member",
+      "syntax": "member Ancestor(member;level|distance)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Set",
+      "id": "CHILDREN",
+      "name": "Children",
+      "description": "Returns the child members of a hierarchy member within an aggregate function",
+      "syntax": "member_set member.Children"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Set",
+      "id": "DEPTH",
+      "name": "Depth",
+      "description": "Returns the depth of a member in a hierarchy",
+      "syntax": "int  [member].Depth"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Set",
+      "id": "DESCENDANTS",
+      "name": "Descendants",
+      "description": "Returns descendant members of a member",
+      "syntax": "member_set Descendants(member;[level|distance];[desc_flag])"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Set",
+      "id": "ISLEAF",
+      "name": "IsLeaf",
+      "description": "Determines whether a member is a leaf member",
+      "syntax": "bool member.IsLeaf"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Set",
+      "id": "LAG",
+      "name": "Lag",
+      "description": "Returns the member a given distance after a member",
+      "syntax": "member Lag(distance)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Set",
+      "id": "MEMBERSATDEPTH",
+      "name": "MemberAtDepth",
+      "description": "Returns the hierarchy members at the given level",
+      "syntax": "string MemberAtDepth(Hierarchy, level)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Set",
+      "id": "PARENT",
+      "name": "Parent",
+      "description": "Returns the parent member of a member",
+      "syntax": "member member.Parent"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Set",
+      "id": "SIBLINGS",
+      "name": "Siblings",
+      "description": "Returns the sibling members of a member",
+      "syntax": "member_set  member.Siblings"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Character",
+      "id": "ASC",
+      "name": "Asc",
+      "description": "Returns the ASCII value of a character",
+      "syntax": "int Asc(string)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "CHAR",
+      "name": "Char",
+      "description": "Returns the character associated with an ASCII code",
+      "syntax": "string Char(ascii_code)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "CONCATENATION",
+      "name": "Concatenation",
+      "description": "Concatenates (joins) two strings",
+      "syntax": "string Concatenation(first_string;second_string)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "FILL",
+      "name": "Fill",
+      "description": "Builds a string by repeating a string n times",
+      "syntax": "string Fill(repeating_string;num_repeats)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "FORMATDATE",
+      "name": "FormatDate",
+      "description": "Formats a date according to a specified format",
+      "syntax": "string FormatDate(date;format_string)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "FORMATNUMBER",
+      "name": "FormatNumber",
+      "description": "Formats a number according to a specified format",
+      "syntax": "string FormatNumber(number;format_string)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "HTMLENCODE",
+      "name": "HTMLEncode",
+      "description": "Applies HTML encoding rules to a string",
+      "syntax": "string HTMLEncode(html)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "INITCAP",
+      "name": "InitCap",
+      "description": "Capitalizes the first letter of a string",
+      "syntax": "string InitCap(string)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "LEFT",
+      "name": "Left",
+      "description": "Returns the first characters of a string",
+      "syntax": "string Left(string;num_chars)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "LEFTPAD",
+      "name": "LeftPad",
+      "description": "Pads the beginning of a string with another string",
+      "syntax": "string LeftPad(padded_string;length;left_string)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "LEFTTRIM",
+      "name": "LeftTrim",
+      "description": "Trims the leading spaces from a string",
+      "syntax": "string LeftTrim(trimmed_string)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Character",
+      "id": "LENGTH",
+      "name": "Length",
+      "description": "Returns the number of characters in a string",
+      "syntax": "int Length(string)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "LOWER",
+      "name": "Lower",
+      "description": "Converts a string to lower case",
+      "syntax": "string Lower(string)"
+   },
+   {
+      "@returnType": "bool",
+      "@category": "Character",
+      "id": "MATCH",
+      "name": "Match",
+      "description": "Determines whether a string matches a pattern",
+      "syntax": "bool Match(test_string;pattern)"
+   },
+   {
+      "@returnType": "number",
+      "@category": "Character",
+      "id": "POS",
+      "name": "Pos",
+      "description": "Returns the starting position of a text pattern in a string",
+      "syntax": "int Pos(test_string;pattern)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "REPLACE",
+      "name": "Replace",
+      "description": "Replaces a part of a string with another string",
+      "syntax": "string Replace(replace_in;replaced_string;replace_with)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "RIGHT",
+      "name": "Right",
+      "description": "Returns the last characters of a string",
+      "syntax": "string Right(string;num_chars)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "RIGHTPAD",
+      "name": "RightPad",
+      "description": "Pads the end of a string with another string",
+      "syntax": "string RightPad(padded_string;length;right_string)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "RIGHTTRIM",
+      "name": "RightTrim",
+      "description": "Trims the trailing spaces from a string",
+      "syntax": "string RightTrim(trimmed_string)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "SUBSTR",
+      "name": "Substr",
+      "description": "Returns part of a string",
+      "syntax": "string Substr(string;start;length)"
+   },
+   {
+      "@returnType": "string",
+      "@category": "Character",
+      "id": "TRIM",
+      "name": "Trim",
+      "description": "Removes the leading and trailing blanks from a string",
+      "syntax": "string Trim(string)"
+   }
+]

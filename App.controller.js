@@ -218,7 +218,7 @@ sap.ui.define([
     return this.getView().getViewData().dict
   }
   C.prototype._getFunctions = function () {
-    return this.getView().getViewData().functions
+    return this.getView().getViewData()
   }
 
   return C

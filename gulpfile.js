@@ -4,7 +4,6 @@ const babel = require('gulp-babel');
 const vinyl = require('vinyl-fs');
 const map = require('map-stream')
 const plumber = require('gulp-plumber')
-const glob = require("glob")
 
 const excludes = [
    '!dist/**',
@@ -51,12 +50,7 @@ gulp.task('build', () => {
       }))
 })
 
-gulp.task('glob', () => {
-   glob('**', { nodir: true, ignore: ['node_modules/**', 'sapui/**', '*.zip'] }, function (er, files) {
-      console.log(files)
-   })
-})
 
 
-gulp.task('default', ['watch', 'build', 'glob']);
+gulp.task('default', ['watch', 'build']);
 
