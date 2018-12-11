@@ -277,7 +277,6 @@ sap.ui.define([
             if (!rowElement) {
                rowElement = this._newRow()
                output.appendChild(rowElement)
-               this._colorize(rowElement, part)
             } else {
                this._fixNodes(rowElement)
                if (rowElement.nodeName !== 'DIV') {
