@@ -1,6 +1,6 @@
 <mvc:View
    xmlns="sap.m"
-   xmlns:control="control"
+   xmlns:control="sap.bi.webi.ui.control"
    controllerName="gs.App"
    xmlns:mvc="sap.ui.core.mvc">
 
