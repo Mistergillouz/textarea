@@ -14,7 +14,15 @@ sap.ui.define([
   }
 
   C.prototype.onInit = function () {
-    this.byId('formula-editor2').setFunctions(this._getFunctions())
+
+    axios.get('data/data.json')
+      .then(req => req.data)
+      .then(mock => {
+        const formulaEditor = this.byId('formulaEditor')
+        formulaEditor.setFunctions(mock.functions)
+        formulaEditor.setOperators(mock.operators)
+        formulaEditor.setDictionary(mock.dico)
+      })
   }
 
   C.prototype.onShowFragment = function (oEvent) {
@@ -31,12 +39,13 @@ sap.ui.define([
 
   C.prototype.onFormulaChange = function (oEvent) {
     const formula = oEvent.getParameter('formula')
+    console.log(formula)
   }
   
   C.prototype._getDictionary = function () {
     return this.getView().getViewData().dict
   }
-  
+
   C.prototype._getFunctions = function () {
     return this.getView().getViewData()
   }

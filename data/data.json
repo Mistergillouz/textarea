@@ -1,0 +1,905 @@
+{
+   "dico": {
+      "expression": [
+         {
+            "@dataType": "String",
+            "@qualification": "Hierarchy",
+            "id": "DP0.DO44",
+            "name": "Country Hierarchy 01",
+            "description": "Country Hierarchy 01",
+            "dataSourceObjectId": "HCOUNTRY_HIERARCHY_01|Z_COUNTRY",
+            "formulaLanguageId": "[Country Hierarchy 01]"
+         },
+         {
+            "@dataType": "String",
+            "@qualification": "Hierarchy",
+            "id": "DP0.DO15",
+            "name": "Customer",
+            "description": "Customer",
+            "dataSourceObjectId": "HZ_CUSTOM",
+            "formulaLanguageId": "[Customer]"
+         },
+         {
+            "@dataType": "String",
+            "@qualification": "Hierarchy",
+            "id": "DP0.DO7",
+            "name": "Sales Hierarchy 03",
+            "description": "Sales Hierarchy 03",
+            "dataSourceObjectId": "HSALES_HIERARCHY_03//99991231|Z_SALES",
+            "formulaLanguageId": "[Sales Hierarchy 03]"
+         },
+         {
+            "@dataType": "Numeric",
+            "@qualification": "Measure",
+            "@highPrecision": "false",
+            "id": "DP0.DO51",
+            "name": "Order Amount",
+            "description": "Order Amount",
+            "dataSourceObjectId": "M6YO6IIFP29Q0YGYC0LHA9J6X7",
+            "formulaLanguageId": "[Order Amount]",
+            "aggregationFunction": "Sum"
+         },
+         {
+            "@dataType": "Numeric",
+            "@qualification": "Measure",
+            "@highPrecision": "false",
+            "id": "DP0.DO54",
+            "name": "Order Quantity",
+            "description": "Order Quantity",
+            "dataSourceObjectId": "M6L8S70UUJ3FNHHETUOE220KTH",
+            "formulaLanguageId": "[Order Quantity]",
+            "aggregationFunction": "Sum"
+         }
+      ]
+   },
+   "operators": [
+      {
+         "id": "ALL",
+         "name": "All",
+         "description": "Ignores all filters (NoFilter function) or counts all values (Count function)",
+         "syntax": "All"
+      },
+      {
+         "id": "NOT_ON_BREAK",
+         "name": "NotOnBreak",
+         "description": "Tells the Interpolation function to ignore section and block breaks",
+         "syntax": "NotOnBreak"
+      },
+      {
+         "id": "LESS_THAN_OR_EQUAL",
+         "name": "<=",
+         "description": "Less Than Or Equal To operator.",
+         "syntax": ""
+      },
+      {
+         "id": "NOT_EQUAL",
+         "name": "<>",
+         "description": "Not Equal To operator.",
+         "syntax": ""
+      },
+      {
+         "id": "OR",
+         "name": "Or",
+         "description": "Links boolean values",
+         "syntax": "bool_value Or bool_value [Or bool_value...]"
+      },
+      {
+         "id": "BREAK",
+         "name": "Break",
+         "description": "Accounts for table breaks (Percentage) or references break data (extended syntax)",
+         "syntax": "Break"
+      },
+      {
+         "id": "POINT_TO_POINT",
+         "name": "PointToPoint",
+         "description": "Tells the Interpolation function to use point-to-point interpolation to supply missing measure values",
+         "syntax": "PointToPoint"
+      },
+      {
+         "id": "INDEX",
+         "name": "Index",
+         "description": "Returns the database primary key of a prompt response",
+         "syntax": "Index"
+      },
+      {
+         "id": "FOREACH",
+         "name": "ForEach",
+         "description": "Adds dimensions to the calculation context",
+         "syntax": "ForEach (added_calculation_dims)"
+      },
+      {
+         "id": "DISTINCT",
+         "name": "Distinct",
+         "description": "Tells the Count function to count distinct values only",
+         "syntax": "Distinct"
+      },
+      {
+         "id": "SORTORDERASC",
+         "name": "Ascending",
+         "description": "PromptSummary function argument. If set, sorts the prompt in the ascending order",
+         "syntax": "Sort the Prompts in the ascending order"
+      },
+      {
+         "id": "STATUSOFDATA",
+         "name": "StatusOfData",
+         "description": "The BW status of data indicates the last refresh date of the BW info provider",
+         "syntax": ""
+      },
+      {
+         "id": "MINUTEPERIOD",
+         "name": "MinutePeriod",
+         "description": "Time period in minutes.",
+         "syntax": "MinutePeriod"
+      },
+      {
+         "id": "MONTHPERIOD",
+         "name": "MonthPeriod",
+         "description": "Time period in months.",
+         "syntax": "MonthPeriod"
+      },
+      {
+         "id": "SEMESTERPERIOD",
+         "name": "SemesterPeriod",
+         "description": "Time period in semesters.",
+         "syntax": "SemesterPeriod"
+      },
+      {
+         "id": "BETWEEN",
+         "name": "Between",
+         "description": "Determines whether a value is between two values",
+         "syntax": "Between(first_value;second_value)"
+      },
+      {
+         "id": "PARENTHESIS_OPEN",
+         "name": "(",
+         "description": "",
+         "syntax": ""
+      },
+      {
+         "id": "PARENTHESIS_CLOSE",
+         "name": ")",
+         "description": "",
+         "syntax": ""
+      },
+      {
+         "id": "TRANSLATEPROMPTS",
+         "name": "TranslatePrompts",
+         "description": "TranslatePrompts",
+         "syntax": "Translate the Prompts"
+      },
+      {
+         "id": "MULTIPLICATION",
+         "name": "*",
+         "description": "Multiplication operator.",
+         "syntax": ""
+      },
+      {
+         "id": "ADDITION",
+         "name": "+",
+         "description": "Addition operator.",
+         "syntax": ""
+      },
+      {
+         "id": "SECONDPERIOD",
+         "name": "SecondPeriod",
+         "description": "Time period in seconds.",
+         "syntax": "SecondPeriod"
+      },
+      {
+         "id": "MINUS",
+         "name": "-",
+         "description": "Minus operator.",
+         "syntax": ""
+      },
+      {
+         "id": "DOT",
+         "name": ".",
+         "description": "",
+         "syntax": ""
+      },
+      {
+         "id": "DIVISION",
+         "name": "/",
+         "description": "Division operator.",
+         "syntax": ""
+      },
+      {
+         "id": "SELF_BEFORE_AFTER",
+         "name": "Self_Before_After",
+         "description": "Tells the Descendants function to include all descendants and the current member",
+         "syntax": "Self_Before_After"
+      },
+      {
+         "id": "NOT",
+         "name": "Not",
+         "description": "Returns the opposite of a boolean value",
+         "syntax": "bool Not (bool_value)"
+      },
+      {
+         "id": "TOP",
+         "name": "Top",
+         "description": "Tells the Rank function to rank in descending order",
+         "syntax": "Top"
+      },
+      {
+         "id": "AND",
+         "name": "And",
+         "description": "Links boolean values",
+         "syntax": "bool_value And bool_value [And bool_value...]"
+      },
+      {
+         "id": "BLOCK",
+         "name": "Block",
+         "description": "References the data in a block",
+         "syntax": "Block"
+      },
+      {
+         "id": "BOTTOM",
+         "name": "Bottom",
+         "description": "Tells the Rank function to rank in ascending order",
+         "syntax": "Bottom"
+      },
+      {
+         "id": "COLON",
+         "name": ":",
+         "description": "",
+         "syntax": ""
+      },
+      {
+         "id": "WEEKPERIOD",
+         "name": "WeekPeriod",
+         "description": "Time period in weeks.",
+         "syntax": "WeekPeriod"
+      },
+      {
+         "id": "SEMICOLON",
+         "name": ";",
+         "description": "",
+         "syntax": ""
+      },
+      {
+         "id": "ROW",
+         "name": "Row",
+         "description": "Calculates running aggregates and percentages by row",
+         "syntax": "Row"
+      },
+      {
+         "id": "LESS_THAN",
+         "name": "<",
+         "description": "Less Than operator.",
+         "syntax": ""
+      },
+      {
+         "id": "EQUAL",
+         "name": "=",
+         "description": "",
+         "syntax": ""
+      },
+      {
+         "id": "WHERE",
+         "name": "Where",
+         "description": "Restricts the data used to calculate a measure",
+         "syntax": "restricted_data Where (restricting_condition)"
+      },
+      {
+         "id": "GREATER_THAN",
+         "name": ">",
+         "description": "Greater Than operator.",
+         "syntax": ""
+      },
+      {
+         "id": "GREATER_THAN_OR_EQUAL",
+         "name": ">=",
+         "description": "Greater Than Or Equal To operator.",
+         "syntax": ""
+      },
+      {
+         "id": "BEFORE",
+         "name": "Before",
+         "description": "Tells the Descendants function to return the descendants above a specified level",
+         "syntax": "Before"
+      },
+      {
+         "id": "INCLUDEEMPTY",
+         "name": "IncludeEmpty",
+         "description": "Tells some aggregate functions to include empty values in calculations",
+         "syntax": "IncludeEmpty"
+      },
+      {
+         "id": "SELF_AFTER",
+         "name": "Self_After",
+         "description": "Tells the Descendants function to return the descendants below a given level and to include the current member",
+         "syntax": "Self_After"
+      },
+      {
+         "id": "DAYPERIOD",
+         "name": "DayPeriod",
+         "description": "Time period in days.",
+         "syntax": "DayPeriod"
+      },
+      {
+         "id": "QUARTERPERIOD",
+         "name": "QuarterPeriod",
+         "description": "Time period in quarters.",
+         "syntax": "QuarterPeriod"
+      },
+      {
+         "id": "IN",
+         "name": "In",
+         "description": "Specifies the dimensions in the calculation context",
+         "syntax": "In (calculation_dims)"
+      },
+      {
+         "id": "INLIST",
+         "name": "InList",
+         "description": "Determines if a value is in a list",
+         "syntax": "bool test_value Inlist(value_list)"
+      },
+      {
+         "id": "DRILL",
+         "name": "Drill",
+         "description": "Tells the NoFilter function to ignore drill filters",
+         "syntax": "Drill"
+      },
+      {
+         "id": "SELF",
+         "name": "Self",
+         "description": "Refers the Previous function to the previous cell when it does not contain a report object",
+         "syntax": "Self"
+      },
+      {
+         "id": "SORTORDERDESC",
+         "name": "Descending",
+         "description": "PromptSummary function argument. If set, sorts the prompt in the descending order",
+         "syntax": "Sort the prompts in the descending order"
+      },
+      {
+         "id": "LEAVES",
+         "name": "Leaves",
+         "description": "Tells the Descendants function to return all leaf descendants above a specified level",
+         "syntax": "Leaves"
+      },
+      {
+         "id": "FORCECOL",
+         "name": "FORCE_COL",
+         "description": "c3_qe_help_en_385",
+         "syntax": ""
+      },
+      {
+         "id": "NO_NULL",
+         "name": "NoNull",
+         "description": "Tells the Previous function to ignore null values",
+         "syntax": "NoNull"
+      },
+      {
+         "id": "YEARPERIOD",
+         "name": "YearPeriod",
+         "description": "Time period in years.",
+         "syntax": "YearPeriod"
+      },
+      {
+         "id": "SELF_BEFORE",
+         "name": "Self_Before",
+         "description": "Tells the Descendants function to return the descendants below a given level and to include the current member",
+         "syntax": "Self_Before"
+      },
+      {
+         "id": "MILLISECONDPERIOD",
+         "name": "MillisecondPeriod",
+         "description": "Time period in milliseconds.",
+         "syntax": "MillisecondPeriod"
+      },
+      {
+         "id": "BODY",
+         "name": "Body",
+         "description": "References data in a report, section or block",
+         "syntax": "Body"
+      },
+      {
+         "id": "COL",
+         "name": "Col",
+         "description": "Calculates running aggregates and percentages by column",
+         "syntax": "Col"
+      },
+      {
+         "id": "SHOWDEFINITIVEPROMPTS",
+         "name": "ShowDefinitivePrompts",
+         "description": "ShowDefinitivePrompts",
+         "syntax": "Show the definitive prompts"
+      },
+      {
+         "id": "REPORT",
+         "name": "Report",
+         "description": "References all the data in a report",
+         "syntax": "Report"
+      },
+      {
+         "id": "HOURPERIOD",
+         "name": "HourPeriod",
+         "description": "Time period in hours.",
+         "syntax": "HourPeriod"
+      },
+      {
+         "id": "SORTORDERDEF",
+         "name": "Default",
+         "description": "PromptSummary function argument. If set, sorts the prompt in the datasource order",
+         "syntax": "Sort the prompts in the datasource order"
+      },
+      {
+         "id": "SECTION",
+         "name": "Section",
+         "description": "References the data in a section",
+         "syntax": "Section"
+      },
+      {
+         "id": "BEFORE_AFTER",
+         "name": "Before_After",
+         "description": "Tells the Descendants function to include all descendants except those at a given level",
+         "syntax": "Before_After"
+      },
+      {
+         "id": "LINEAR",
+         "name": "Linear",
+         "description": "Tells the Interpolation function to use linear regression to supply missing measure values",
+         "syntax": "Linear"
+      },
+      {
+         "id": "AFTER",
+         "name": "After",
+         "description": "Tells the Descendants function to return the descendants below a specified level",
+         "syntax": "After"
+      },
+      {
+         "id": "CURLY_BRACKET_OPEN",
+         "name": "{",
+         "description": "",
+         "syntax": ""
+      },
+      {
+         "id": "FORALL",
+         "name": "ForAll",
+         "description": "Removes dimensions from the calculation context",
+         "syntax": "ForAl l(removed_calculation_dims)"
+      },
+      {
+         "id": "CURLY_BRACKET_CLOSE",
+         "name": "}",
+         "description": "",
+         "syntax": ""
+      }
+   ],
+   "functions": [
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "ABS",
+         "name": "Abs",
+         "description": "Returns the absolute value of a number",
+         "syntax": "num Abs(number)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "CEIL",
+         "name": "Ceil",
+         "description": "Rounds a number up to the nearest integer\t",
+         "syntax": "num Ceil(number)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "COS",
+         "name": "Cos",
+         "description": "Returns the cosine of an angle",
+         "syntax": "num Cos(number)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "EUROCONVERTFROM",
+         "name": "EuroConvertFrom",
+         "description": "Converts a euro amount to another currency",
+         "syntax": "num EuroConvertFrom(euro_amount;curr_code;round_level)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "EUROCONVERTTO",
+         "name": "EuroConvertTo",
+         "description": "Converts an amount to euros",
+         "syntax": "num EuroConvertTo(noneuro_amount;curr_code;round_level)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "EUROFROMROUNDERROR",
+         "name": "EuroFromRoundError",
+         "description": "Returns the rounding error in a conversion from euros",
+         "syntax": "num EuroFromRoundError(euro_amount;curr_code;round_level)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "EUROTOROUNDERROR",
+         "name": "EuroToRoundError",
+         "description": "Returns the rounding error in a conversion to euros",
+         "syntax": "num EuroToRoundError(noneuro_amount;curr_code;round_level)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "EXP",
+         "name": "Exp",
+         "description": "Returns an exponential (e raised to a power)",
+         "syntax": "num Exp(number)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "FACT",
+         "name": "Fact",
+         "description": "Returns the factorial of an integer",
+         "syntax": "num Fact(number)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "FLOOR",
+         "name": "Floor",
+         "description": "Rounds a number down to the nearest integer",
+         "syntax": "int Floor(number)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "LN",
+         "name": "Ln",
+         "description": "Returns the natural logarithm of a number",
+         "syntax": "num Ln(number)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "LOG",
+         "name": "Log",
+         "description": "Returns the base n logarithm of a number",
+         "syntax": "num Log(number;base)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "LOG10",
+         "name": "Log10",
+         "description": "Returns the base 10 logarithm of a number",
+         "syntax": "num Log10(number)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "MOD",
+         "name": "Mod",
+         "description": "Returns the remainder from the division of two numbers",
+         "syntax": "num Mod(dividend;divisor)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "POWER",
+         "name": "Power",
+         "description": "Returns a number raised to a power",
+         "syntax": "num Power(number;power)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "RANK",
+         "name": "Rank",
+         "description": "Ranks a measure by dimensions",
+         "syntax": "int Rank(measure[;ranking_dims][;Top|Bottom][;reset_dims])"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "ROUND",
+         "name": "Round",
+         "description": "Rounds a number ",
+         "syntax": "num Round(number;round_level)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "SIGN",
+         "name": "Sign",
+         "description": "Returns the sign of a number",
+         "syntax": "int Sign(number)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "SIN",
+         "name": "Sin",
+         "description": "Returns the sine of an angle",
+         "syntax": "num Sin(number)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "SQRT",
+         "name": "Sqrt",
+         "description": "Returns the square root of a number",
+         "syntax": "num Sqrt(number)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "TAN",
+         "name": "Tan",
+         "description": "Returns the tangent of an angle",
+         "syntax": "num Tan(number)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "TODECIMAL",
+         "name": "ToDecimal",
+         "description": "Returns a string or a number as a decimal.",
+         "syntax": "decimal ToDecimal(string or num)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "TONUMBER",
+         "name": "ToNumber",
+         "description": "Returns a string or a decimal as a number.",
+         "syntax": "num ToNumber(string)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Numeric",
+         "id": "TRUNCATE",
+         "name": "Truncate",
+         "description": "Truncates a number",
+         "syntax": "num Truncate(number;truncate_level)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Set",
+         "id": "ANCESTOR",
+         "name": "Ancestor",
+         "description": "Returns an ancestor member of a member",
+         "syntax": "member Ancestor(member;level|distance)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Set",
+         "id": "CHILDREN",
+         "name": "Children",
+         "description": "Returns the child members of a hierarchy member within an aggregate function",
+         "syntax": "member_set member.Children"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Set",
+         "id": "DEPTH",
+         "name": "Depth",
+         "description": "Returns the depth of a member in a hierarchy",
+         "syntax": "int  [member].Depth"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Set",
+         "id": "DESCENDANTS",
+         "name": "Descendants",
+         "description": "Returns descendant members of a member",
+         "syntax": "member_set Descendants(member;[level|distance];[desc_flag])"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Set",
+         "id": "ISLEAF",
+         "name": "IsLeaf",
+         "description": "Determines whether a member is a leaf member",
+         "syntax": "bool member.IsLeaf"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Set",
+         "id": "LAG",
+         "name": "Lag",
+         "description": "Returns the member a given distance after a member",
+         "syntax": "member Lag(distance)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Set",
+         "id": "MEMBERSATDEPTH",
+         "name": "MemberAtDepth",
+         "description": "Returns the hierarchy members at the given level",
+         "syntax": "string MemberAtDepth(Hierarchy, level)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Set",
+         "id": "PARENT",
+         "name": "Parent",
+         "description": "Returns the parent member of a member",
+         "syntax": "member member.Parent"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Set",
+         "id": "SIBLINGS",
+         "name": "Siblings",
+         "description": "Returns the sibling members of a member",
+         "syntax": "member_set  member.Siblings"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Character",
+         "id": "ASC",
+         "name": "Asc",
+         "description": "Returns the ASCII value of a character",
+         "syntax": "int Asc(string)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "CHAR",
+         "name": "Char",
+         "description": "Returns the character associated with an ASCII code",
+         "syntax": "string Char(ascii_code)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "CONCATENATION",
+         "name": "Concatenation",
+         "description": "Concatenates (joins) two strings",
+         "syntax": "string Concatenation(first_string;second_string)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "FILL",
+         "name": "Fill",
+         "description": "Builds a string by repeating a string n times",
+         "syntax": "string Fill(repeating_string;num_repeats)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "FORMATDATE",
+         "name": "FormatDate",
+         "description": "Formats a date according to a specified format",
+         "syntax": "string FormatDate(date;format_string)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "FORMATNUMBER",
+         "name": "FormatNumber",
+         "description": "Formats a number according to a specified format",
+         "syntax": "string FormatNumber(number;format_string)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "HTMLENCODE",
+         "name": "HTMLEncode",
+         "description": "Applies HTML encoding rules to a string",
+         "syntax": "string HTMLEncode(html)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "INITCAP",
+         "name": "InitCap",
+         "description": "Capitalizes the first letter of a string",
+         "syntax": "string InitCap(string)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "LEFT",
+         "name": "Left",
+         "description": "Returns the first characters of a string",
+         "syntax": "string Left(string;num_chars)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "LEFTPAD",
+         "name": "LeftPad",
+         "description": "Pads the beginning of a string with another string",
+         "syntax": "string LeftPad(padded_string;length;left_string)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "LEFTTRIM",
+         "name": "LeftTrim",
+         "description": "Trims the leading spaces from a string",
+         "syntax": "string LeftTrim(trimmed_string)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Character",
+         "id": "LENGTH",
+         "name": "Length",
+         "description": "Returns the number of characters in a string",
+         "syntax": "int Length(string)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "LOWER",
+         "name": "Lower",
+         "description": "Converts a string to lower case",
+         "syntax": "string Lower(string)"
+      },
+      {
+         "@returnType": "bool",
+         "@category": "Character",
+         "id": "MATCH",
+         "name": "Match",
+         "description": "Determines whether a string matches a pattern",
+         "syntax": "bool Match(test_string;pattern)"
+      },
+      {
+         "@returnType": "number",
+         "@category": "Character",
+         "id": "POS",
+         "name": "Pos",
+         "description": "Returns the starting position of a text pattern in a string",
+         "syntax": "int Pos(test_string;pattern)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "REPLACE",
+         "name": "Replace",
+         "description": "Replaces a part of a string with another string",
+         "syntax": "string Replace(replace_in;replaced_string;replace_with)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "RIGHT",
+         "name": "Right",
+         "description": "Returns the last characters of a string",
+         "syntax": "string Right(string;num_chars)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "RIGHTPAD",
+         "name": "RightPad",
+         "description": "Pads the end of a string with another string",
+         "syntax": "string RightPad(padded_string;length;right_string)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "RIGHTTRIM",
+         "name": "RightTrim",
+         "description": "Trims the trailing spaces from a string",
+         "syntax": "string RightTrim(trimmed_string)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "SUBSTR",
+         "name": "Substr",
+         "description": "Returns part of a string",
+         "syntax": "string Substr(string;start;length)"
+      },
+      {
+         "@returnType": "string",
+         "@category": "Character",
+         "id": "TRIM",
+         "name": "Trim",
+         "description": "Removes the leading and trailing blanks from a string",
+         "syntax": "string Trim(string)"
+      }
+   ]
+}

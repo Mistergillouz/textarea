@@ -6,7 +6,8 @@
       <title>Walkthrough</title>
 
       <link rel="stylesheet" type="text/css" href="control/FormulaTextArea.css">
-
+      <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+      <script src="polyfill.min.js"></script>
       <script
          id="sap-ui-bootstrap"
          src="sapui/resources/sap-ui-core.js"
@@ -23,14 +24,8 @@
       </script>
       <script>
          sap.ui.getCore().attachInit(function () {
-            fetch('save/dico.json')
-            .then(response => response.json())
-            .then(data => {
-               sap.ui.xmlview({
-                  viewName : "gs.App",
-                  viewData: data
-               }).placeAt("content");
-            })
+            sap.ui.xmlview({ viewName : "gs.App" })
+               .placeAt("content");
          });
       </script>
    </head>

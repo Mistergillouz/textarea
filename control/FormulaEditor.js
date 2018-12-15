@@ -11,7 +11,7 @@ sap.ui.define([
          Operators: 'operator'
       }
 
-      const FormulaEditor = Control.extend('control.FormulaEditor2', {
+      const FormulaEditor = Control.extend('control.FormulaEditor', {
          metadata: {
             properties: {
                width: { type: 'sap.ui.core.CSSSize', defaultValue: '100%' },
@@ -39,8 +39,7 @@ sap.ui.define([
       FormulaEditor.prototype.init = function () {
          Control.prototype.init.call(this)
 
-         const browser = sap.ui.Device.browser
-         console.log(browser)
+         // const browser = sap.ui.Device.browser
          this._list = new sap.m.List({
             mode: 'SingleSelectMaster'
          })
@@ -78,12 +77,12 @@ sap.ui.define([
          const styles = window.getComputedStyle(this.getDomRef())
          const padding = 1 + parseInt(styles.paddingTop) + parseInt(styles.paddingBottom) + Math.round(parseFloat(styles.borderTopWidth)) + Math.round(parseFloat(styles.borderBottomWidth))
          const growingMaxLines = this.getGrowingMaxLines()
-         if (!isNaN(growingMaxLines)) {
+         if (growingMaxLines > 0) {
             this.getDomRef().style.maxHeight = `${padding + (this._lineHeight * growingMaxLines)}px`
          }
 
          const rows = this.getRows()
-         if (!isNaN(rows)) {
+         if (rows > 0) {
             this.getDomRef().style.minHeight = `${padding + (this._lineHeight * rows)}px`
          }
 
@@ -134,8 +133,10 @@ sap.ui.define([
       }
 
       FormulaEditor.prototype._buildRules = function () {
-         const functionList = this.getFunctions().map((f) => f.name.toLowerCase())
-         const operatorsList = this.getOperators().map((f) => f.name.toLowerCase())
+         const functionList = this.getFunctions().map((f) => f.name)
+         const operatorsList = this.getOperators().map((f) => this._escapeRegExpChars(f.name))
+         const ifThenElseList = this._getAdditionalKeywords().map((f) => f.name)
+
          this._rulesSet = [
             {
                name: 'object',
@@ -146,6 +147,9 @@ sap.ui.define([
             }, {
                name: 'operators',
                reg: operatorsList.length ? new RegExp(`(${operatorsList.join('|')}(?!\w|=))`, 'gi') : null
+            }, {
+               name: 'ifthenelse',
+               reg: ifThenElseList.length ? new RegExp(`(${ifThenElseList.join('|')}(?!\w|=))`, 'gi') : null
             }, {
                name: 'op',
                reg: new RegExp(/[\+\-\*\/=<>;!]=?|[\(\)\{\}\[\]\.\|]/gi)
@@ -165,10 +169,10 @@ sap.ui.define([
          ]
       }
 
-      FormulaEditor.prototype._tokenize = function (inpuText) {
+      FormulaEditor.prototype._tokenize = function (inputText) {
 
          const tokens = []
-         let text = String(inpuText)
+         let text = String(inputText)
          let matchRule = null
          while (text.length) {
             const found = this._rulesSet.some((regexp) => {
@@ -248,7 +252,6 @@ sap.ui.define([
          }
       }
 
-      // \[\b([a-zA-Z0-9\u00C0-\u00FF_ ])+\b\]/ -> dict object
       FormulaEditor.prototype._render = function (oRm) {
          oRm.write('<div contenteditable="true" spellcheck="false"')
 
@@ -267,18 +270,19 @@ sap.ui.define([
       FormulaEditor.prototype._onUpdate = function (oEvent) {
          setTimeout(() => {
             this._savePositions()
-            console.log(this.getCaretPosition())
-            const formula = this._getFormula()
-            this.setFormula(formula)
+            this.setFormula(this._getFormula())
             this._setCaretPosition(this.getCaretPosition())
-            this._handleSuggestions(formula)
+            this._handleSuggestions()
          }, 0)
       }
 
       FormulaEditor.prototype._updateFormula = function (formula) {
+
          const output = this._getOutput()
          const nodes = output.childNodes
          const parts = formula.split('\n')
+
+         console.log(formula)
          parts.forEach((part, index) => {
             let rowElement = nodes[index]
             if (!rowElement) {
@@ -316,6 +320,7 @@ sap.ui.define([
             }
          }
       }
+
       FormulaEditor.prototype._savePositions = function () {
          this.setProperty('caretPosition', this._getCaretPosition(), true)
          this.setProperty('scrollPosition', this._getScrollPosition(), true)
@@ -341,7 +346,6 @@ sap.ui.define([
       }
 
       FormulaEditor.prototype._setScrollPosition = function (scroll) {
-         let i = 1
          if (scroll) {
             const textarea = this._getTextArea()
             textarea.scrollLeft = scroll.left
@@ -352,7 +356,6 @@ sap.ui.define([
       FormulaEditor.prototype._onMouseUp = function (oEvent) {
          this._savePositions()
          this._hidePopup()
-         console.log('mouseUp', this.getCaretPosition())
       }
 
       FormulaEditor.prototype._onKeyDown = function (oEvent) {
@@ -403,7 +406,7 @@ sap.ui.define([
          } else if (oEvent.ctrlKey || oEvent.altKey) {
             if (oEvent.ctrlKey && oEvent.keyCode === 32) {
                this._updatePositions()
-               this._handleSuggestions(this.getFormula())
+               this._handleSuggestions()
                preventDefault = true
             }
          } else if (oEvent.key === 'Enter' && !this.getAllowEnter()) {
@@ -578,8 +581,8 @@ sap.ui.define([
       }
 
       FormulaEditor.prototype._toSpan = function (textElement) {
-         const text = textElement.textContent
-         if (text.length) {
+         const text = this._purgeText(textElement.innerText)
+         if (text) {
             const span = document.createElement('span')
             span.innerText = text
             return span
@@ -589,7 +592,7 @@ sap.ui.define([
       }
 
       FormulaEditor.prototype._purgeText = function (text) {
-         return text.replace(/\n/g, '').replace(/<br>/g, '')
+         return text.replace(/\r\n/g, '').replace(/\n/g, '').replace(/<br>/g, '')
       }
 
       FormulaEditor.prototype._onSuggestionSelected = function (suggestion) {
@@ -608,29 +611,30 @@ sap.ui.define([
          }
       }
 
-      FormulaEditor.prototype._handleSuggestions = function (formula) {
+      FormulaEditor.prototype._handleSuggestions = function () {
+         const formula = this.getFormula()
          const caret = this.getCaretPosition() - 1
          const textInfos = this._extractWordAt(formula, caret)
          let suggestions = []
          if (textInfos) {
-            suggestions = this._getContextualSuggestions(textInfos)
+            suggestions = this._buildSuggestions(textInfos)
          }
 
          this.setSuggestions(suggestions)
       }
 
-      FormulaEditor.prototype._getContextualSuggestions = function (textInfos) {
+      FormulaEditor.prototype._buildSuggestions = function (textInfos) {
          const suggestions = []
-         const textPart = textInfos.partialWord.toLowerCase().trim()
+         const text = textInfos.partialWord.toLowerCase().trim()
          if (!textInfos.withinObject) {
             const functions = this.getFunctions()
-            suggestions.push(...this._match(functions, textPart, (entry) => Object.assign(entry, {
+            suggestions.push(...this._match(functions, text, (entry) => Object.assign(entry, {
                icon: 'sap-icon://simulate',
                type: SuggestionType.Formula
             })))
 
             const operators = this.getOperators()
-            suggestions.push(...this._match(operators, textPart, (entry) => Object.assign(entry, {
+            suggestions.push(...this._match(operators, text, (entry) => Object.assign(entry, {
                icon: 'sap-icon://attachment',
                type: SuggestionType.Operators
             })))
@@ -638,20 +642,20 @@ sap.ui.define([
 
          const dict = this.getDictionary()
          const expressions = dict.expression || []
-         suggestions.push(...this._match(expressions, textPart,
+         suggestions.push(...this._match(expressions, text,
             (expression) => this._applyExpressionSuggestion(expressions, expression)))
 
          const variables = (dict.variable || []).concat(dict.link || [])
-         suggestions.push(...this._match(variables, textPart,
+         suggestions.push(...this._match(variables, text,
             (variable) => this._applyVariableSuggestion(variable)))
 
          return suggestions
       }
 
-      FormulaEditor.prototype._match = function (suggestions, textPart, fnCallback) {
-         return (suggestions || [])
+      FormulaEditor.prototype._match = function (suggestions, textPart, callback) {
+         return suggestions
             .filter((entry) => entry.name.toLowerCase().indexOf(textPart) === 0)
-            .map((entry) => fnCallback(JSON.parse(JSON.stringify(entry))))
+            .map((entry) => callback(JSON.parse(JSON.stringify(entry))))
       }
 
       FormulaEditor.prototype._insertSuggestion = function (formula, suggestion, textInfos) {
@@ -769,6 +773,17 @@ sap.ui.define([
          return null
       }
 
+      FormulaEditor.prototype._applyExpressionSuggestion = function (expressions, inputExpression) {
+         const expression = this._applyVariableSuggestion(inputExpression)
+     
+         const same = expressions.filter((other) => expression.name === other.name)
+         if (same.length > 1) {
+           expression.name = expression.formulaLanguageId
+         }
+     
+         return expression
+       }
+
       FormulaEditor.prototype._applyVariableSuggestion = function (suggestion) {
          let icon = null
          switch (suggestion['@qualification']) {
@@ -786,6 +801,33 @@ sap.ui.define([
          suggestion.icon = icon
          suggestion.type = SuggestionType.Object
          return suggestion
+      }
+
+      FormulaEditor.prototype._escapeRegExpChars = function (text) {
+         return text.toLowerCase().trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      }
+
+      FormulaEditor.prototype._getAdditionalKeywords = function () {
+         return [
+            {
+               "id": "_IF_",
+               "name": "If",
+               "description": "",
+               "syntax": ""
+            },
+            {
+               "id": "_then_",
+               "name": "Then",
+               "description": "",
+               "syntax": ""
+            },
+            {
+               "id": "_else_",
+               "name": "Else",
+               "description": "",
+               "syntax": ""
+            }
+         ]
       }
 
       return FormulaEditor
