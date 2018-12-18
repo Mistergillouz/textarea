@@ -5,8 +5,24 @@
    <meta http-equiv="X-UA-Compatible" content="IE=edge">
    <title>Page Title</title>
    <meta name="viewport" content="width=device-width, initial-scale=1">
-   <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+   <link rel="stylesheet" type="text/css" href="control/FormulaTextArea.css">
    <script src="main.js"></script>
+
+   <script
+         id="sap-ui-bootstrap"
+         src="sapui/resources/sap-ui-core.js"
+         data-sap-ui-theme="sap_bluecrystal"
+         data-sap-ui-libs="sap.m"
+         data-sap-ui-compatVersion="edge"
+         data-sap-ui-preload="async"
+         data-sap-ui-resourceroots='{
+            "gs": "./",
+            "sap.bi.webi.ui": "./",
+            "ui": "./ui",
+            "fragment": "./fragments"
+         }' >
+      </script>
+
 </head>
 <style>
    .formula-editor {
@@ -22,15 +38,27 @@
 
 </style>
 <body>
-      <div contenteditable="true" class="formula-editor" id="editor">
-         Le Lorem Ipsum est simplement du faux texte employé dans la composition et la mise en page avant impression. Le Lorem Ipsum est le faux texte standard de l'imprimerie depuis les années 1500, quand un imprimeur anonyme assembla ensemble des morceaux de texte pour réaliser un livre spécimen de polices de texte. Il n'a pas fait que survivre cinq siècles, mais s'est aussi adapté à la bureautique informatique, sans que son contenu n'en soit modifié. Il a été popularisé dans les années 1960 grâce à la vente de feuilles Letraset contenant des passages du Lorem Ipsum, et, plus récemment, par son inclusion dans des applications de mise en page de texte, comme Aldus PageMaker.
+
+      <div class="outerContainer" contenteditable="false">
+            <div contenteditable="true" class="wingfe sapMInputBaseHeightMargin" id="editor">
+               <div class="winfe-row" style="min-height: 17px;">
+                  <span style="color: red">Le Lorem Ipsum</span>
+                  <span>est simplement du faux texte employé dans la composition et la mise en page avant impression. Le Lorem Ipsum est le faux texte standard de l'imprimerie depuis les années 1500, quand un imprimeur anonyme assembla ensemble des morceaux de texte pour réaliser un livre spécimen de polices de texte. Il n'a pas fait que survivre cinq siècles, mais s'est aussi adapté à la bureautique informatique, sans que son contenu n'en soit modifié. Il a été popularisé dans les années 1960 grâce à la vente de feuilles Letraset contenant des passages du Lorem Ipsum, et, plus récemment, par son inclusion dans des applications de mise en page de texte, comme Aldus PageMaker.
+                  </span>
+               </div>
+            </div>
       </div>
+      <div id="version"></div>
+      <button onClick="getVersion()">Version</button>
       <button onclick="getText()">Get Text</button>
       <button onclick="replaceLorem()">Replace lorem</button>
    </div>
 </body>
 <script>
 
+   function getVersion() {
+      document.getElementById('version').innerText = JSON.stringify(sap.ui.Device.browser)
+   }
    function replaceLorem() {
          const editor = document.getElementById('editor')
          const search = 'Lorem'
