@@ -13,6 +13,16 @@ sap.ui.define([
       Operators: 'operator'
     }
 
+    const Keys = {
+      ArrowLeft: 37,
+      ArrowRight: 39,
+      ArrowUp: 38,
+      ArrowDown: 40,
+      Enter: 13,
+      Space: 32,
+      Escape: 27
+    }
+
     const FormulaEditor = Control.extend('sap.bi.webi.ui.control.FormulaEditor', {
       metadata: {
         properties: {
@@ -93,22 +103,22 @@ sap.ui.define([
 
       const output = this._getOutput()
 
-      // Emulate change event for ie11
-      const mo = new window.MutationObserver((e) => {
-        const now = Date.now()
-        // IE11 is flooding Mutation events
-        if ((now - FormulaEditor.mutationTimeout) > 100) {
-          FormulaEditor.mutationTimeout = now
+      const fnCreateObserver = () => {
+        this._mutationObserver = new window.MutationObserver((e) => {
           console.log(e)
+          this._mutationObserver.takeRecords()
+          this._mutationObserver.disconnect()
           this._onUpdate()
-        }
-      })
+          setTimeout(() => fnCreateObserver(), 0)
+        })
+  
+        this._mutationObserver.observe(output, {
+          subtree: true,
+          characterData: true
+        });
+      }
 
-      mo.observe(output, {
-        childList: false,
-        subtree: true,
-        characterData: true
-      });
+      fnCreateObserver()
 
       output.addEventListener('keydown', this._onKeyDown.bind(this), false)
       output.addEventListener('mouseup', this._onMouseUp.bind(this), false)
@@ -152,9 +162,9 @@ sap.ui.define([
     }
 
     FormulaEditor.prototype._buildRules = function () {
-      const functionList = this.getFunctions().map((f) => f.name)
-      const operatorsList = this.getOperators().map((f) => this._escapeRegExpChars(f.name))
-      const ifThenElseList = this._getAdditionalKeywords().map((f) => f.name)
+      const functionList = this._buildKeywordList(this.getFunctions())
+      const operatorsList = this._buildKeywordList(this.getOperators())
+      const ifThenElseList = this._buildKeywordList(this._getAdditionalKeywords())
 
       this._rulesSet = [
         {
@@ -163,62 +173,69 @@ sap.ui.define([
         },
         {
           name: 'functions',
-          reg: functionList.length ? new RegExp(`(${functionList.join('|')})(?!\w|=)`, 'gi') : null
+          keywords: true,
+          reg: functionList.length ? new RegExp(`(${functionList.join('|')})(?!\w|=)`, 'i') : null
         },
         {
           name: 'operators',
-          reg: operatorsList.length ? new RegExp(`(${operatorsList.join('|')}(?!\w|=))`, 'gi') : null
+          keywords: true,
+          reg: operatorsList.length ? new RegExp(`(${operatorsList.join('|')}(?!\w|=))`, 'i') : null
         },
         {
           name: 'ifthenelse',
-          reg: ifThenElseList.length ? new RegExp(`(${ifThenElseList.join('|')}(?!\w|=))`, 'gi') : null
-        },
-        {
-          name: 'op',
-          reg: new RegExp(/[\+\-\*\/=<>;!]=?|[\(\)\{\}\[\]\.\|]/gi)
-        },
+          keywords: true,
+          reg: ifThenElseList.length ? new RegExp(`(${ifThenElseList.join('|')}(?!\w|=))`, 'i') : null
+        },        
         {
           name: 'string',
-          reg: new RegExp(/"(\\.|[^"\r\n])*"?|'(\\.|[^'\r\n])*'?/gi)
+          reg: new RegExp(/"(\\.|[^"\r\n])*"?|'(\\.|[^'\r\n])*'?/i)
         },
         {
           name: 'number',
-          reg: new RegExp(/0x[\dA-Fa-f]+|-?(\d+\.?\d*|\.\d+)/gi)
+          reg: new RegExp(/0x[\dA-Fa-f]+|-?(\d+\.?\d*|\.\d+)/i)
         },
         {
           name: 'other',
-          reg: new RegExp(/\S+/gi)
+          reg: new RegExp(/\S+/i)
         },
         {
           name: 'space',
-          reg: new RegExp(/\s+/gi)
+          reg: new RegExp(/\s+/i)
         }
       ]
+    }
+
+    FormulaEditor.prototype._buildKeywordList = function (list) {
+      return list.sort((a, b) => a.name.length - b.name.length).map((a) => this._escapeRegExpChars(a.name))
     }
 
     FormulaEditor.prototype._tokenize = function (inputText) {
 
       const tokens = []
       let text = String(inputText)
-      let matchRule = null
       while (text.length) {
-        const found = this._rulesSet.some((regexp) => {
-          let result = false
+        const matchRules = []
+        for (let i = 0; i < this._rulesSet.length; i++) {
+          const regexp = this._rulesSet[i]
           const matches = text.match(regexp.reg)
           if (matches) {
             const matchText = matches.find((match) => text.indexOf(match) === 0)
             if (matchText) {
-              result = true
-              matchRule = {
+              matchRules.push({
                 text: matchText,
+                keywords: regexp.keywords,
                 rule: regexp.name
-              }
+              })
             }
           }
-          return result
-        })
+        }
 
-        if (found) {
+        if (matchRules.length) {
+          let matchRule = matchRules[0]
+          if (matchRules.some((r) => r.keywords)) {
+            const list = matchRules.filter((r) => r.keywords).sort((a, b) => b.text.length - a.text.length)
+            matchRule = list[0]
+          }
           tokens.push(matchRule)
           text = text.substring(matchRule.text.length)
         } else {
@@ -226,7 +243,6 @@ sap.ui.define([
             text,
             rule: 'other'
           })
-
           break
         }
       }
@@ -394,18 +410,13 @@ sap.ui.define([
     }
 
     FormulaEditor.prototype._onKeyDown = function (oEvent) {
-      console.log('onKeyDown: ', oEvent.key)
-
       let preventDefault = false
       if (this._isPopupOpen()) {
         let item = null
-        switch (oEvent.key) {
-          case 'ArrowUp':
-          case 'ArrowDown':
-          // IE11 goodness
-          case 'Up':
-          case 'Down':
-            const isDown = oEvent.key === 'Down' || oEvent.key === 'ArrayDown'
+        switch (oEvent.keyCode) {
+          case Keys.ArrowUp:
+          case Keys.ArrowDown:
+            const isDown = oEvent.keyCode === Keys.ArrowDown
             const items = this._list.getItems()
             item = this._list.getSelectedItem()
             let index = items.indexOf(item)
@@ -422,20 +433,17 @@ sap.ui.define([
             preventDefault = true
             break
 
-            case 'ArrowLeft':
-            case 'ArrowRight':
-            // IE11 goodness
-            case 'Left':
-            case 'Right':
+            case Keys.ArrowLeft:
+            case Keys.ArrowRight:
               this._hidePopup()
               break
 
-          case 'Escape':
+          case Keys.Escape:
             this._hidePopup()
             preventDefault = true
             break
 
-          case 'Enter':
+          case Keys.Enter:
             item = this._list.getSelectedItem()
             if (item) {
               this._onItemSelected(item)
@@ -448,14 +456,14 @@ sap.ui.define([
         }
 
       } else if (oEvent.ctrlKey || oEvent.altKey) {
-        if (oEvent.ctrlKey && oEvent.keyCode === 32) {
+        if (oEvent.ctrlKey && oEvent.keyCode === Keys.Space) {
           this._updatePositions()
           this._handleSuggestions()
           preventDefault = true
         }
-      } else if (oEvent.key === 'Enter' && !this.getAllowEnter()) {
+      } else if (oEvent.keyCode === Keys.Enter && !this.getAllowEnter()) {
         preventDefault = true
-      } else if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Down', 'Up', 'Left', 'Right'].indexOf(oEvent.key) !== -1) {
+      } else if ([Keys.ArrowDown, Keys.ArrowUp, Keys.ArrowLeft, Keys.ArrowRight].indexOf(oEvent.keyCode) !== -1) {
         this._hidePopup()
       }
 
