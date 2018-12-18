@@ -69,6 +69,8 @@ sap.ui.define([
       this._buildRules()
     }
 
+    FormulaEditor.mutationTimeout = 0
+
     FormulaEditor.prototype.onAfterRendering = function () {
       if (!this._lineHeight) {
         this._lineHeight = this._calculateLineHeight()
@@ -90,7 +92,24 @@ sap.ui.define([
       this._savePositions()
 
       const output = this._getOutput()
-      output.addEventListener(this._msie ? 'keyup' : 'input', this._onUpdate.bind(this), false)
+
+      // Emulate change event for ie11
+      const mo = new window.MutationObserver((e) => {
+        const now = Date.now()
+        // IE11 is flooding Mutation events
+        if ((now - FormulaEditor.mutationTimeout) > 100) {
+          FormulaEditor.mutationTimeout = now
+          console.log(e)
+          this._onUpdate()
+        }
+      })
+
+      mo.observe(output, {
+        childList: false,
+        subtree: true,
+        characterData: true
+      });
+
       output.addEventListener('keydown', this._onKeyDown.bind(this), false)
       output.addEventListener('mouseup', this._onMouseUp.bind(this), false)
 
@@ -288,8 +307,6 @@ sap.ui.define([
       setTimeout(() => {
         this._savePositions()
         this.setFormula(this._getFormula())
-        debugger
-
         this._setCaretPosition(this.getCaretPosition())
         this._handleSuggestions()
       }, 0)
@@ -377,19 +394,25 @@ sap.ui.define([
     }
 
     FormulaEditor.prototype._onKeyDown = function (oEvent) {
+      console.log('onKeyDown: ', oEvent.key)
+
       let preventDefault = false
       if (this._isPopupOpen()) {
         let item = null
         switch (oEvent.key) {
           case 'ArrowUp':
           case 'ArrowDown':
+          // IE11 goodness
+          case 'Up':
+          case 'Down':
+            const isDown = oEvent.key === 'Down' || oEvent.key === 'ArrayDown'
             const items = this._list.getItems()
             item = this._list.getSelectedItem()
             let index = items.indexOf(item)
             if (index < 0) {
-              index = oEvent.key === 'ArrowDown' ? 0 : items.length - 1
+              index = isDown ? 0 : items.length - 1
             } else {
-              index += oEvent.key === 'ArrowDown' ? 1 : -1
+              index += isDown ? 1 : -1
             }
 
             if (index >= 0 && index < items.length) {
@@ -399,10 +422,13 @@ sap.ui.define([
             preventDefault = true
             break
 
-          case 'ArrowLeft':
-          case 'ArrowRight':
-            this._hidePopup()
-            break
+            case 'ArrowLeft':
+            case 'ArrowRight':
+            // IE11 goodness
+            case 'Left':
+            case 'Right':
+              this._hidePopup()
+              break
 
           case 'Escape':
             this._hidePopup()
@@ -429,7 +455,7 @@ sap.ui.define([
         }
       } else if (oEvent.key === 'Enter' && !this.getAllowEnter()) {
         preventDefault = true
-      } else if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].indexOf(oEvent.key) !== -1) {
+      } else if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Down', 'Up', 'Left', 'Right'].indexOf(oEvent.key) !== -1) {
         this._hidePopup()
       }
 
