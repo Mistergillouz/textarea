@@ -79,8 +79,6 @@ sap.ui.define([
       this._buildRules()
     }
 
-    FormulaEditor.mutationTimeout = 0
-
     FormulaEditor.prototype.onAfterRendering = function () {
       if (!this._lineHeight) {
         this._lineHeight = this._calculateLineHeight()
@@ -105,7 +103,6 @@ sap.ui.define([
 
       const fnCreateObserver = () => {
         this._mutationObserver = new window.MutationObserver((e) => {
-          console.log(e)
           this._mutationObserver.takeRecords()
           this._mutationObserver.disconnect()
           this._onUpdate()
@@ -114,6 +111,7 @@ sap.ui.define([
   
         this._mutationObserver.observe(output, {
           subtree: true,
+          childList: true,
           characterData: true
         });
       }
@@ -410,6 +408,7 @@ sap.ui.define([
     }
 
     FormulaEditor.prototype._onKeyDown = function (oEvent) {
+      console.log('caret', this.getCaretPosition())
       let preventDefault = false
       if (this._isPopupOpen()) {
         let item = null
@@ -650,7 +649,7 @@ sap.ui.define([
     }
 
     FormulaEditor.prototype._toSpan = function (textElement) {
-      const text = this._purgeText(textElement.innerText)
+      const text = this._purgeText(textElement.innerText || textElement.textContent)
       if (text) {
         const span = document.createElement('span')
         span.innerText = text
