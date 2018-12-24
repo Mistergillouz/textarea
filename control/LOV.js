@@ -20,10 +20,6 @@ sap.ui.define([
           type: 'sap.ui.core.CSSSize',
           defaultValue: '100%'
         },
-        hierarchical: {
-          type: 'boolean',
-          defaultValue: false
-        },
         multi: {
           type: 'boolean',
           defaultValue: false
@@ -69,10 +65,10 @@ sap.ui.define([
 
     this._model = new sap.ui.model.json.JSONModel({
       answerCount: 0,
-      showKeys: this.getShowKeys(),
-      searchable: this.getSearchable(),
-      multi: this.getMulti(),
-      hierarchical: this.getHierarchical(),
+      showKeys: false,
+      searchable: true,
+      multi: false,
+      hierarchical: false,
       values: [],
       answerValues: [],
       defaultValues: [],
@@ -119,6 +115,15 @@ sap.ui.define([
 
     this._removeAllValuePages()
     this._model.setProperty(VALUES_ROOT, this._prepareValues(values))
+
+    const hierarchical = this._visitValues((value) => {
+      if (value.isWithChildren || Array.isArray(value[VALUES_NODES])) {
+        return true
+      }
+    })
+
+    this._model.setProperty('/hierarchical', hierarchical)
+    
     this._addValuePage(VALUES_ROOT)
   }
 
@@ -133,11 +138,6 @@ sap.ui.define([
     this.setProperty('answerValues', values)
     this._model.setProperty('/answerValues', values)
     this._model.setProperty('/answerCount', values.length)
-  }
-
-  LOV.prototype.setHierarchical = function (value) {
-    this.setProperty('hierarchical', value, Boolean(value))
-    this._model.setProperty('/hierarchical', Boolean(value))
   }
 
   /// ////////////////////
@@ -177,13 +177,18 @@ sap.ui.define([
   LOV.prototype._onValuesItemSelectionChange = function (oEvent) {
     const selected = oEvent.getParameter('selected')
     const selectedValue = oEvent.getParameter('listItem').getBindingContext().getObject()
-    let answerValues = this.getAnswerValues().slice()
+    const answerValues = this.getAnswerValues().slice()
     const index = answerValues.findIndex((answerValue) => this._isValueEqual(answerValue, selectedValue))
     if (selected) {
+      if (!this.getMulti()) {
+        answerValues.forEach((value) => this._selectValue(value, false))
+        answerValues.length = 0
+      }
       if (index === -1) {
         answerValues.push(this._toValue(selectedValue))
       }
     } else if (index !== -1) {
+      this._selectValue(selectedValue, false)
       answerValues.splice(index, 1)
     }
 
@@ -278,12 +283,12 @@ sap.ui.define([
   }
 
   LOV.prototype._buildBreadcrumb = function (modelPath) {
-    const links = []
     const indices = modelPath.match(/(\d+)/g)
     if (!indices) {
       return null
     }
 
+    const links = []
     for (let i = 0; i < indices.length - 1; i++) {
       const valuePath = this._toModelPath(indices.slice(0, i + 1))
       const value = this._model.getProperty(valuePath)
@@ -504,17 +509,22 @@ sap.ui.define([
   LOV.prototype._visitValues = function (callback) {
     const path = []
     const values = this._model.getProperty(VALUES_ROOT)
-    this._visit(values, path, callback)
+    return this._visit(values, path, callback)
   }
 
   LOV.prototype._visit = function (values, path, callback) {
-    values.forEach((value, index) => {
+    return values.some((value, index) => {
       path.push(index)
-      callback(value, this._toModelPath(path))
+      if (callback(value, this._toModelPath(path)) === true) {
+        return true
+      }
+
+      let result = false
       if (Array.isArray(value[VALUES_NODES])) {
-        this._visit(value[VALUES_NODES], path, callback)
+        result = this._visit(value[VALUES_NODES], path, callback)
       }
       path.pop()
+      return result
     })
   }
 

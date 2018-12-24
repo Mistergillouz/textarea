@@ -16,7 +16,7 @@
    <control:LOV
       height="500px"
       class="sapUiSizeCompact"
-      multi="false"
+      multi="true"
       hierarchical="true"
       answerValues="{/answerValues}"
       defaultValues="{/defaultValues}"
