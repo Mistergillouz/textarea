@@ -4,9 +4,6 @@
    controllerName="gs.App"
    xmlns:mvc="sap.ui.core.mvc">
 
-   <Button id="input" text="Fragment" press="onShowFragment"/>
-   <TextArea value="Hello World" growingMaxLines="4" rows="1" growing="true"/>
-      
    <control:FormulaEditor
       class="wingTestFormulaEditor"
       id="formulaEditor"
@@ -14,6 +11,20 @@
       growingMaxLines="4"
       formulaChange="onFormulaChange"
       formula="=Ancestor(100) + [Coucou] + if true Then toto else titi"/>
+
+
+   <control:LOV
+      height="500px"
+      class="sapUiSizeCompact"
+      multi="false"
+      hierarchical="true"
+      answerValues="{/answerValues}"
+      defaultValues="{/defaultValues}"
+      values="{/values}"
+      searchable="{/searchable}"
+      selectionChange="onSelectionChange"
+      fetchValues="onFetchValues">
+   </control:LOV>
 
 
 </mvc:View>

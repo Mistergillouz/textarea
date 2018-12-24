@@ -23,13 +23,15 @@
     "gulp-plumber": "^1.2.1",
     "gulp-watch": "^5.0.1",
     "map-stream": "0.0.7",
+    "standard": "^12.0.1",
     "vinyl-fs": "^3.0.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "gulp watch",
     "build": "gulp build",
-    "glob": "gulp glob"
+    "lint": "standard control/**/*.js",
+    "lint-fix": "standard --fix control/**/*.js"
   },
   "keywords": [],
   "author": "",

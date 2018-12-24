@@ -23,6 +23,58 @@ sap.ui.define([
         formulaEditor.setOperators(mock.operators)
         formulaEditor.setDictionary(mock.dico)
       })
+
+    const defaultValues = [
+      'Gilles',
+      { $: 'Dollar', '@id': 'key' },
+      { '@id': 'keyOnly' }
+    ]
+
+    const answerValuesMulti = [
+      'Answer1',
+      { $: 'Dollar', '@id': 'key' },
+      { $: 'Sub1' }
+    ]
+
+    const answerValuesMono = [
+      { $: 'Dollar', '@id': 'key' }
+    ]
+
+    const values = [
+      'Gilles',
+      { $: 'Dollar', '@id': 'key' },
+      {
+        $: 'Folder',
+        nodes: [ 'Folder0', { $: 'Folder1' } ]
+      },
+      {
+        $: 'Folder 2',
+        isWithChildren: true
+      }
+    ]
+
+    this._model = new sap.ui.model.json.JSONModel({
+      searchable: true,
+      values,
+      defaultValues,
+      answerValues: answerValuesMono
+    })
+    this._model.setDefaultBindingMode(sap.ui.model.BindingMode.TwoWay)
+    this.getView().setModel(this._model)
+  }
+
+  C.prototype.onSelectionChange = function (oEvent) {
+    console.log(oEvent.getSource().getAnswerValues())
+  }
+  C.prototype.onFetchValues = function (oEvent) {
+    const done = oEvent.getParameter('done')
+    done([
+      'Sub0',
+      {
+        $: 'Sub1',
+        isWithChildren: true
+      }
+    ])
   }
 
   C.prototype.onShowFragment = function (oEvent) {
@@ -41,7 +93,7 @@ sap.ui.define([
     const formula = oEvent.getParameter('formula')
     console.log(formula)
   }
-  
+
   C.prototype._getDictionary = function () {
     return this.getView().getViewData().dict
   }
