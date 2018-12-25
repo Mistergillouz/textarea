@@ -96,8 +96,8 @@ sap.ui.define([
 
     this._page = new sap.m.Page({
       showHeader: false,
+      showSubHeader: false,
       content: this._mainNav,
-      customHeader: null,
       footer: this._getMainPageFooter()
     })
 
@@ -154,6 +154,11 @@ sap.ui.define([
     }
     this.setProperty('searchMode', searchMode)
     this._model.setProperty('/searchMode', searchMode)
+  }
+
+  LOV.prototype.setShowKeys = function (value) {
+    this.setProperty('showKeys', value)
+    this._model.setProperty('/showKeys', value)
   }
 
   /// ////////////////////
@@ -273,12 +278,13 @@ sap.ui.define([
   LOV.prototype._setSearchResult = function (values) {
     this._model.setProperty(VALUES_SEARCH, values)
     const searchPage = this._mapPages[VALUES_SEARCH]
+    const transition = 'flip'
     if (!searchPage) {
-      this._addValuePage(VALUES_SEARCH)
+      this._addValuePage(VALUES_SEARCH, { transition })
     } else {
       searchPage.rerender()
       if (this._valueNav.getCurrentPage() !== searchPage) {
-        this._valueNav.to(searchPage)
+        this._valueNav.to(searchPage, transition)
       }
     }
   }
@@ -296,7 +302,8 @@ sap.ui.define([
     this._valueNav.to(page)
   }
 
-  LOV.prototype._addValuePage = function (bindingPath) {
+  LOV.prototype._addValuePage = function (bindingPath, inArgs) {
+    const args = inArgs || {}
     const table = new sap.m.Table({
       growing: true,
       growingScrollToLoad: true,
@@ -314,10 +321,10 @@ sap.ui.define([
     table.addColumn(answerColumn)
     table.addColumn(keyColumn)
 
-    const textCell = new sap.m.Text()
+    const textCell = new sap.m.Text({ maxLines: 3 })
     this._attachProperty(textCell, 'text', '', (answer) => this._formatValue(answer))
 
-    const keyCell = new sap.m.Text()
+    const keyCell = new sap.m.Text({ maxLines: 1 })
     this._attachProperty(keyCell, 'text', '', (answer) => this._formatKey(answer))
 
     const columnListItem = new sap.m.ColumnListItem({
@@ -338,16 +345,20 @@ sap.ui.define([
       template: columnListItem
     })
 
+    const bread = this._buildBreadcrumb(bindingPath)
     const page = new sap.m.Page({
-      customHeader: this._buildBreadcrumb(bindingPath),
+      showHeader: false,
+      showFooter: false,
+      subHeader: bread,
       content: table
     })
 
-    this._attachProperty(page, 'showHeader', '/hierarchical')
+    this._attachProperty(page, 'showSubHeader', '/hierarchical', (hierarchical) => Boolean(hierarchical && bread))
+    page.addStyleClass('wingTestLOVValuePage sapWingLOVValuePage')
 
     this._mapPages[bindingPath] = page
     this._valueNav.addPage(page)
-    this._valueNav.to(page)
+    this._valueNav.to(page, args.transition)
     return page
   }
 
@@ -406,12 +417,12 @@ sap.ui.define([
   LOV.prototype._buildValuePage = function () {
     this._valueNav = new sap.m.NavContainer()
     const page = new sap.m.Page({
-      showHeader: true,
-      customHeader: this._getValuePageToolbar(),
+      showHeader: false,
+      subHeader: this._getValuePageToolbar(),
       content: this._valueNav
     })
 
-    this._attachProperty(page, 'showHeader', '/searchMode', (searchMode) => Boolean(searchMode !== SearchMode.NONE))
+    this._attachProperty(page, 'showSubHeader', '/searchMode', (searchMode) => Boolean(searchMode !== SearchMode.NONE))
     return page
   }
 

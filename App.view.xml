@@ -13,7 +13,10 @@
       formula="=Ancestor(100) + [Coucou] + if true Then toto else titi"/>
 
 
+   <Button text="Show Keys" press="onShowKeys"/>
+
    <control:LOV
+      id="lov"
       height="500px"
       class="sapUiSizeCompact"
       multi="true"
