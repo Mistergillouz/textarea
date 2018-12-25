@@ -26,6 +26,11 @@
       searchMode="{/searchMode}"
       selectionChange="onSelectionChange"
       fetchValues="onFetchValues">
+      <control:footer>
+         <Toolbar>
+            <Button text="Footer"/>
+         </Toolbar>
+      </control:footer>
    </control:LOV>
 
 

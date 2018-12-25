@@ -56,6 +56,12 @@ sap.ui.define([
           defaultValue: false
         }
       },
+      aggregations: {
+        footer: {
+          type: 'sap.m.IBar',
+          multiple: false
+        }
+      },
       events: {
         fetchValues: {},
         selectionChange: {}
@@ -94,14 +100,24 @@ sap.ui.define([
     this._mainNav.addPage(this._valuePage)
     this._mainNav.addPage(this._answerPage)
 
-    this._page = new sap.m.Page({
+    this._mainPage = new sap.m.Page({
       showHeader: false,
       showSubHeader: false,
       content: this._mainNav,
-      footer: this._getMainPageFooter()
+      footer: this._getDefaultFooterToolbar()
     })
 
     this._updateEnablement()
+  }
+
+  LOV.prototype.setFooter = function (toolbar) {
+    const content = toolbar.getContent()
+    const controls = this._getDefaultFooterToolbarControls()
+    content.splice(0, 0, ...controls)
+    toolbar.removeAllContent()
+    content.forEach((control) => toolbar.addContent(control))
+
+    this._mainPage.setFooter(toolbar)
   }
 
   LOV.prototype._render = function (out) {
@@ -113,9 +129,13 @@ sap.ui.define([
     out.addStyle('height', this.getHeight())
     out.writeStyles()
     out.write('>')
-    out.renderControl(this._page)
+    out.renderControl(this._mainPage)
     out.write('</div>')
   }
+
+  /************************
+  // PROPERTIES HANDLERS
+  *************************/
 
   LOV.prototype.setValues = function (inValues) {
     const values = Array.isArray(inValues) ? inValues : []
@@ -161,8 +181,9 @@ sap.ui.define([
     this._model.setProperty('/showKeys', value)
   }
 
-  /// ////////////////////
+  /***********************
   // EVENT HANDLERS
+  ************************/
 
   LOV.prototype._onSearchLiveChange = function (oEvent) {
     if (this.getSearchMode() === SearchMode.LOCAL) {
@@ -187,9 +208,9 @@ sap.ui.define([
   }
 
   LOV.prototype._onReset = function () {
+    this.getAnswerValues().forEach((selectedValue) => this._selectValue(selectedValue, false))
     const defaultValues = this.getDefaultValues().slice()
     this.setAnswerValues(defaultValues)
-
     defaultValues.forEach((value) => this._selectValue(value, true))
     this.fireSelectionChange()
   }
@@ -229,6 +250,7 @@ sap.ui.define([
       }
       if (index === -1) {
         answerValues.push(this._toValue(selectedValue))
+        this._selectValue(selectedValue, true)
       }
     } else if (index !== -1) {
       this._selectValue(selectedValue, false)
@@ -492,10 +514,15 @@ sap.ui.define([
 
     return toolbar
   }
-
-  LOV.prototype._getMainPageFooter = function () {
+  
+  LOV.prototype._getDefaultFooterToolbar = function () {
     const toolbar = new sap.m.Toolbar()
+    const controls = this._getDefaultFooterToolbarControls()
+    controls.forEach((control) => toolbar.addContent(control))
+    return toolbar
+  }
 
+  LOV.prototype._getDefaultFooterToolbarControls = function () {
     const toggle = new sap.m.ToggleButton({
       icon: 'sap-icon://complete',
       press: (oEvent) => this._onShowSelected(),
@@ -503,34 +530,26 @@ sap.ui.define([
     })
 
     this._attachProperty(toggle, 'text', '/answerCount')
-    toolbar.addContent(toggle)
 
-    toolbar.addContent(new sap.m.ToolbarSpacer())
-
-    if (this.getMulti()) {
-      toolbar.addContent(new sap.m.Button({
-        text: 'TODO: getMulti()'
-      }))
-    }
-    toolbar.addContent(new sap.m.ToolbarSpacer())
+    const spacer = new sap.m.ToolbarSpacer()
 
     const resetButton = new sap.m.Button({
       text: this._getLocalizedText('prompts.lovPanel.reset'),
       press: () => this._onReset()
     })
+
     this._attachProperty(resetButton, 'visible', '/defaultValues/length', (value) => Boolean(value))
-    toolbar.addContent(resetButton)
 
-    const okButton = new sap.m.Button({ text: this._getLocalizedText('OK') })
-    this._attachProperty(okButton, 'enabled', '/okEnabled')
-    toolbar.addContent(okButton)
-    toolbar.addContent(new sap.m.Button({ text: this._getLocalizedText('CANCEL') }))
-
-    return toolbar
+    return [
+      toggle,
+      spacer,
+      resetButton
+    ]
   }
 
-  /// /////////////////
+  /****************
   // FORMATTERS
+  *****************/
 
   LOV.prototype._formatKey = function (value) {
     return value && value['@id']
