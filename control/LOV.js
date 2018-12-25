@@ -375,6 +375,10 @@ sap.ui.define([
       content: table
     })
 
+    if (bread) {
+      setTimeout(() => bread.rerender(), 0)
+    }
+
     this._attachProperty(page, 'showSubHeader', '/hierarchical', (hierarchical) => Boolean(hierarchical && bread))
     page.addStyleClass('wingTestLOVValuePage sapWingLOVValuePage')
 
@@ -557,14 +561,19 @@ sap.ui.define([
 
   // TODO
   LOV.prototype._formatValue = function (inValue) {
-    const value = inValue && (inValue.$ || inValue['@id'] || inValue)
-    return value || this._getLocalizedText('prompts.lovPanel.empty.value')
-    // return parameter.formatValue(value.$ || value, this.getDataType(), true, this._getLocale())
+    let value = this._getCaption(inValue)
+    if (value === null) {
+      value = this._getKey(inValue)
+      // return parameter.formatValue(value.$ || value, this.getDataType(), true, this._getLocale())
+    } else if (value.length === 0) {
+      value = this._getLocalizedText('prompts.lovPanel.empty.value')
+    }
+    return value
   }
 
   LOV.prototype._isSelected = function (value) {
-    const found = this.getAnswerValues().find((answerValue) => this._isValueEqual(value, answerValue))
-    return Boolean(found)
+    const found = this.getAnswerValues().some((answerValue) => this._isValueEqual(value, answerValue))
+    return found
   }
 
   LOV.prototype._getListType = function (value) {
@@ -576,21 +585,28 @@ sap.ui.define([
     return hasChild ? sap.m.ListType.Navigation : sap.m.ListType.Inactive
   }
 
-  ////////////////////////
+  /********************
   // UTILITY FUNCTIONS
+  *********************/
 
   LOV.prototype._isValueEqual = function (value0, value1) {
     return this._getCaption(value0) === this._getCaption(value1) && this._getKey(value0) === this._getKey(value1)
   }
 
   LOV.prototype._getCaption = function (value) {
-    return value ? value.$ || value || null : null
+    if (typeof value === 'string') {
+      return value
+    }
+    return value && Object.hasOwnProperty.call(value, '$') ? value.$ : null
   }
 
   LOV.prototype._getKey = function (value) {
-    return value ? value['@id'] || null : null
+    if (value && Object.hasOwnProperty.call(value, '@id')) {
+      return value['@id']
+    }
+    return null
   }
-  
+
   LOV.prototype._getLocale = function () {
     return null
   }
@@ -641,11 +657,11 @@ sap.ui.define([
     return values
   }
 
-  LOV.prototype._toModelPath = function (path) {
+  LOV.prototype._toModelPath = function (indices) {
     let modelPath = null
-    if (Array.isArray(path) && path.length) {
-      modelPath = `${VALUES_ROOT}/${path[0]}`
-      path.slice(1).forEach((pathIndex) => modelPath += `/${VALUES_NODES}/${pathIndex}`) // eslint-disable-line
+    if (Array.isArray(indices) && indices.length) {
+      modelPath = `${VALUES_ROOT}/${indices[0]}`
+      indices.slice(1).forEach((pathIndex) => modelPath += `/${VALUES_NODES}/${pathIndex}`) // eslint-disable-line
     }
 
     return modelPath
