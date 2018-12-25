@@ -90,9 +90,6 @@ sap.ui.define([
 
     this._model.setDefaultBindingMode(sap.ui.model.BindingMode.TwoWay)
 
-    this._bottomToolbar = new sap.m.Toolbar()
-    this._topToolbar = new sap.m.Toolbar()
-
     this._mainNav = new sap.m.NavContainer()
 
     this._valuePage = this._buildValuePage()
