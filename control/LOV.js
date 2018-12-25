@@ -518,7 +518,7 @@ sap.ui.define([
 
     return toolbar
   }
-  
+
   LOV.prototype._getDefaultFooterToolbar = function () {
     const toolbar = new sap.m.Toolbar()
     const controls = this._getDefaultFooterToolbarControls()
