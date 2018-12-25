@@ -17,11 +17,10 @@
       height="500px"
       class="sapUiSizeCompact"
       multi="true"
-      hierarchical="true"
       answerValues="{/answerValues}"
       defaultValues="{/defaultValues}"
       values="{/values}"
-      searchable="{/searchable}"
+      searchMode="{/searchMode}"
       selectionChange="onSelectionChange"
       fetchValues="onFetchValues">
    </control:LOV>

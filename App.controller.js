@@ -53,8 +53,12 @@ sap.ui.define([
       }
     ]
 
+    for (let i = 0; i < 50; i++) {
+      values.push({ $: 'Value' + i })
+    }
+
     this._model = new sap.ui.model.json.JSONModel({
-      searchable: true,
+      searchMode: 'Local',
       values,
       defaultValues,
       answerValues: answerValuesMono

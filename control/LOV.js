@@ -7,7 +7,14 @@ sap.ui.define([
   'use strict'
 
   const VALUES_ROOT = '/values'
+  const VALUES_SEARCH = '/search'
   const VALUES_NODES = 'nodes'
+
+  const SearchMode = {
+    NONE: 'None',
+    LOCAL: 'Local',
+    CLIENT: 'Client'
+  }
 
   const LOV = Control.extend('sap.bi.webi.ui.control.LOV', {
     metadata: {
@@ -28,9 +35,9 @@ sap.ui.define([
           type: 'string',
           defaultValue: 'String'
         },
-        searchable: {
-          type: 'boolean',
-          defaultValue: false
+        searchMode: {
+          type: 'string',
+          defaultValue: SearchMode.LOCAL
         },
         values: {
           type: 'array',
@@ -66,7 +73,7 @@ sap.ui.define([
     this._model = new sap.ui.model.json.JSONModel({
       answerCount: 0,
       showKeys: false,
-      searchable: true,
+      searchMode: SearchMode.LOCAL,
       multi: false,
       hierarchical: false,
       values: [],
@@ -100,6 +107,7 @@ sap.ui.define([
   LOV.prototype._render = function (out) {
     out.write('<div')
     out.writeControlData(this)
+    this.addStyleClass('sapWingReportLov')
     out.writeClasses()
     out.addStyle('width', this.getWidth())
     out.addStyle('height', this.getHeight())
@@ -123,7 +131,6 @@ sap.ui.define([
     })
 
     this._model.setProperty('/hierarchical', hierarchical)
-    
     this._addValuePage(VALUES_ROOT)
   }
 
@@ -140,8 +147,39 @@ sap.ui.define([
     this._model.setProperty('/answerCount', values.length)
   }
 
+  LOV.prototype.setSearchMode = function (searchMode) {
+    const values = Object.values(SearchMode)
+    if (values.indexOf(searchMode) === -1) {
+      throw Error(`Invalid SearchMode: "${searchMode}". Valid SearchModes are: ${values.join(', ')}`)
+    }
+    this.setProperty('searchMode', searchMode)
+    this._model.setProperty('/searchMode', searchMode)
+  }
+
   /// ////////////////////
   // EVENT HANDLERS
+
+  LOV.prototype._onSearchLiveChange = function (oEvent) {
+    if (this.getSearchMode() === SearchMode.LOCAL) {
+      this._searchLocal(oEvent.getParameter('newValue'))
+    }
+  }
+  LOV.prototype._onSearch = function (oEvent) {
+    if (oEvent.getParameter('clearButtonPressed')) {
+      this._searchLocal(null)
+    } else {
+      const searchMode = this.getSearchMode()
+      switch (searchMode) {
+        // TODO
+        case SearchMode.CLIENT:
+          break
+
+        case SearchMode.LOCAL:
+          this._searchLocal(oEvent.getParameter('query'))
+          break
+      }
+    }
+  }
 
   LOV.prototype._onReset = function () {
     const defaultValues = this.getDefaultValues().slice()
@@ -217,6 +255,34 @@ sap.ui.define([
   /// ////////////////////
   // INTERNAL FUNCTIONS
 
+  LOV.prototype._searchLocal = function (inQuery) {
+    const query = inQuery && inQuery.trim()
+    if (query && query.length) {
+      const values = []
+      this._visitValues((value, modelPath) => {
+        if (this._getCaption(value).indexOf(query) !== -1) {
+          values.push(value)
+        }
+      })
+      this._setSearchResult(values)
+    } else {
+      this._valueNav.back()
+    }
+  }
+
+  LOV.prototype._setSearchResult = function (values) {
+    this._model.setProperty(VALUES_SEARCH, values)
+    const searchPage = this._mapPages[VALUES_SEARCH]
+    if (!searchPage) {
+      this._addValuePage(VALUES_SEARCH)
+    } else {
+      searchPage.rerender()
+      if (this._valueNav.getCurrentPage() !== searchPage) {
+        this._valueNav.to(searchPage)
+      }
+    }
+  }
+
   LOV.prototype._selectValue = function (selectedValue, selected) {
     this._visitValues((value, modelPath) => {
       if (this._isValueEqual(value, selectedValue)) {
@@ -232,6 +298,8 @@ sap.ui.define([
 
   LOV.prototype._addValuePage = function (bindingPath) {
     const table = new sap.m.Table({
+      growing: true,
+      growingScrollToLoad: true,
       mode: this.getMulti() ? sap.m.ListMode.MultiSelect : sap.m.ListMode.SingleSelectLeft,
       selectionChange: (oEvent) => this._onValuesItemSelectionChange(oEvent),
       itemPress: (oEvent) => this._onValuesItemItemPressed(oEvent)
@@ -280,6 +348,7 @@ sap.ui.define([
     this._mapPages[bindingPath] = page
     this._valueNav.addPage(page)
     this._valueNav.to(page)
+    return page
   }
 
   LOV.prototype._buildBreadcrumb = function (modelPath) {
@@ -342,6 +411,7 @@ sap.ui.define([
       content: this._valueNav
     })
 
+    this._attachProperty(page, 'showHeader', '/searchMode', (searchMode) => Boolean(searchMode !== SearchMode.NONE))
     return page
   }
 
@@ -403,14 +473,13 @@ sap.ui.define([
 
   LOV.prototype._getValuePageToolbar = function () {
     const toolbar = new sap.m.Toolbar()
-    if (!this.getSearchable()) {
-      toolbar.addContent(new sap.m.SearchField({
-        width: '100%',
-        liveChange: (oEvent) => this._onSearchLiveChange(oEvent)
-      }))
-    }
+    toolbar.addContent(new sap.m.SearchField({
+      width: '100%',
+      liveChange: (oEvent) => this._onSearchLiveChange(oEvent),
+      search: (oEvent) => this._onSearch(oEvent)
+    }))
 
-    return toolbar.getContent().length ? toolbar : null
+    return toolbar
   }
 
   LOV.prototype._getMainPageFooter = function () {
