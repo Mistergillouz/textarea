@@ -119,5 +119,19 @@ sap.ui.define([
     return this.getView().getViewData()
   }
 
+  C.prototype.onRequestContextMenu = function (oEvent) {
+    const item = oEvent.getParameter('listItem').getBindingContext().getObject()
+    const done = oEvent.getParameter('done')
+
+    const menu = new sap.m.Menu({
+      items: [
+        new sap.m.MenuItem({text: "item# " + item.text }),
+        new sap.m.MenuItem({text: "Les Gens"})
+      ]
+    })
+  
+    done(menu)
+  }
+
   return C
 });

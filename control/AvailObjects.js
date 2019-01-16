@@ -29,7 +29,7 @@ sap.ui.define([
         }
       },
       events: {
-        fetchValues: {},
+        requestContextMenu: {},
         selectionChange: {}
       }
     },
@@ -98,6 +98,20 @@ sap.ui.define([
   // EVENT HANDLERS
   ************************/
 
+  AvailObjects.prototype._onContextMenu = function (oMouseEvent) {
+    oMouseEvent.preventDefault()
+    const items = this._tree.getItems()
+    const listItem = items.find((item) => item.getDomRef().contains(oMouseEvent.target))
+    if (listItem) {
+      this.fireRequestContextMenu({
+        listItem,
+        done: (menu) => {
+          menu.openAsContextMenu(oMouseEvent, listItem)
+        }
+      })
+    }
+  }
+  
   AvailObjects.prototype._onSearch = function (oEvent) {
     // add filter for search
     const aFilters = []
@@ -120,6 +134,7 @@ sap.ui.define([
   AvailObjects.prototype._createUI = function () {
     this._tree = new sap.m.Tree()
 
+    this._tree.attachBrowserEvent('contextmenu', (oEvent) => this._onContextMenu(oEvent))
     this._tree.attachToggleOpenState(() => this._tree.rerender())
 
     this._tree.setModel(this._model)

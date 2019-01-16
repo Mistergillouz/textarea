@@ -9,6 +9,7 @@
          width="400px"
          height="800px"
          allowSearch="false"
+         requestContextMenu="onRequestContextMenu"
          isMulti="false"/>
    
 </mvc:View>
