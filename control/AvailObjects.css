@@ -1,0 +1,9 @@
+.sapWiseAvailObjects .sapMPageHeader::before {
+  border: 0;
+}
+
+/* [data-selectable="false"] div[role="checkbox"] */
+
+.sapWiseAvailObjects li[data-selectable="false"] div[role="checkbox"] {
+  display: none;
+}

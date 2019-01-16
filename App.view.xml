@@ -2,36 +2,13 @@
    xmlns="sap.m"
    xmlns:control="sap.bi.webi.ui.control"
    controllerName="gs.App"
+   xmlns:core="sap.ui.core"
    xmlns:mvc="sap.ui.core.mvc">
 
-   <control:FormulaEditor
-      class="wingTestFormulaEditor"
-      id="formulaEditor"
-      rows="1"
-      growingMaxLines="4"
-      formulaChange="onFormulaChange"
-      formula="=Ancestor(100) + [Coucou] + if true Then toto else titi"/>
-
-
-   <Button text="Show Keys" press="onShowKeys"/>
-
-   <control:LOV
-      id="lov"
-      height="500px"
-      class="sapUiSizeCompact"
-      multi="true"
-      answerValues="{/answerValues}"
-      defaultValues="{/defaultValues}"
-      values="{/values}"
-      searchMode="{/searchMode}"
-      selectionChange="onSelectionChange"
-      fetchValues="onFetchValues">
-      <control:footer>
-         <Toolbar>
-            <Button text="Footer"/>
-         </Toolbar>
-      </control:footer>
-   </control:LOV>
-
-
+      <control:AvailObjects
+         width="400px"
+         height="800px"
+         allowSearch="false"
+         isMulti="false"/>
+   
 </mvc:View>

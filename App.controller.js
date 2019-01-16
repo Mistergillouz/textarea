@@ -15,14 +15,14 @@ sap.ui.define([
 
   C.prototype.onInit = function () {
 
-    axios.get('data/data.json')
-      .then(req => req.data)
-      .then(mock => {
-        const formulaEditor = this.byId('formulaEditor')
-        formulaEditor.setFunctions(mock.functions)
-        formulaEditor.setOperators(mock.operators)
-        formulaEditor.setDictionary(mock.dico)
-      })
+    // axios.get('data/data.json')
+    //   .then(req => req.data)
+    //   .then(mock => {
+    //     const formulaEditor = this.byId('formulaEditor')
+    //     formulaEditor.setFunctions(mock.functions)
+    //     formulaEditor.setOperators(mock.operators)
+    //     formulaEditor.setDictionary(mock.dico)
+    //   })
 
     const defaultValues = [
       'Gilles',
@@ -64,7 +64,12 @@ sap.ui.define([
       searchMode: 'Local',
       values,
       defaultValues,
-      answerValues: answerValuesMulti
+      answerValues: answerValuesMulti,
+      items: [
+        { key: 'k1', text: 'text1', enabled: true },
+        { key: 'k2', text: 'text2', enabled: false },
+        { key: 'k3', text: 'text3', enabled: true }
+      ]
     })
     this._model.setDefaultBindingMode(sap.ui.model.BindingMode.TwoWay)
     this.getView().setModel(this._model)

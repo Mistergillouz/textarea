@@ -31,7 +31,7 @@
     "watch": "gulp watch",
     "build": "gulp build",
     "lint": "standard control/**/*.js",
-    "lint-fix": "standard --fix control/**/*.js"
+    "lint-fix": "standard --fix control/**/*.js controller/**/*.js"
   },
   "keywords": [],
   "author": "",
