@@ -14,6 +14,18 @@ sap.ui.define([
     Datasource: 'Datasource'
   }
 
+  const NodeType = {
+    RootNode: 'RootNode',
+    Object: 'Object',
+    VariableFolder: 'VariableFolder',
+    Variable: 'Variable',
+    ReferenceFolder: 'ReferenceFolder',
+    Reference: 'Reference',
+    DataProvider: 'DataProvider',
+    DataSource: 'DataSource',
+    DataSourceFolder: 'DataSourceFolder'
+  }
+
   const AvailObjects = Control.extend('sap.bi.webi.ui.control.AvailObjects', {
     metadata: {
       properties: {
@@ -49,7 +61,23 @@ sap.ui.define([
     })
 
     this._model = new sap.ui.model.json.JSONModel({
-      nodes: []
+      nodes: [],
+      showFooter: true,
+      viewMode: ViewMode.Alpha,
+      select: [
+        {
+          key: ViewMode.Alpha,
+          text: '<<Alpha>>'
+        },
+        {
+          key: ViewMode.Query,
+          text: '<<Query>>'
+        },
+        {
+          key: ViewMode.Datasource,
+          text: '<<DataSource>>'
+        }
+      ]
     })
 
     this._model.setDefaultBindingMode(sap.ui.model.BindingMode.TwoWay)
@@ -126,9 +154,8 @@ sap.ui.define([
   ************************/
 
   AvailObjects.prototype._setViewMode = function (viewMode) {
-    debugger
     const trees = this._model.getProperty('/trees')
-    
+
     let tree = null
     switch (viewMode) {
       case ViewMode.Alpha:
@@ -148,15 +175,37 @@ sap.ui.define([
     if (tree) {
       const availObjects = tree.AvailableObjects
       if (Array.isArray(availObjects)) {
-        nodes = nodes.concat(availObjects.map((object) => this._toDpObject(object)))
+        nodes = nodes.concat(this._processObjects(availObjects))
+      } else if (Array.isArray(tree.DataProviders)) {
+        const dpNodes = tree.DataProviders.map((dp) => {
+          const dpNode = this._toDataProvider(dp)
+          dpNode.nodes = this._processObjects(dp.children)
+          delete dpNode.children
+          return dpNode
+        })
+
+        nodes = nodes.concat(dpNodes)
+      } else if (Array.isArray(tree.universeFolders)) {
+        const dsNodes = tree.universeFolders.map((ds) => {
+          const dsNode = this._toDataSource(ds)
+          dsNode.nodes = ds.children.map((dsFolder) => {
+            const dsFolderNode = this._toDataSourceFolder(dsFolder)
+            dsFolderNode.nodes = this._processObjects(dsFolder.children)
+            return dsFolderNode
+          })
+          delete dsNode.children
+          return dsNode
+        })
+
+        nodes = nodes.concat(dsNodes)
       }
 
       const variables = tree.Variables
       if (variables) {
         if (Array.isArray(variables.variables)) {
           const variablesNode = {
-            name: '<<Variables>>',
-            selectable: false,
+            displayName: '<<Variables>>',
+            nodeType: NodeType.VariableFolder,
             icon: 'sap-icon://folder-blank',
             nodes: variables.variables.map((variable) => this._toVariable(variable))
           }
@@ -164,8 +213,8 @@ sap.ui.define([
         }
         if (Array.isArray(variables.references)) {
           const refsNode = {
-            name: '<<References>>',
-            selectable: false,
+            displayName: '<<References>>',
+            nodeType: NodeType.ReferenceFolder,
             icon: 'sap-icon://folder-blank',
             nodes: variables.references.map((reference) => this._toReference(reference))
           }
@@ -175,17 +224,26 @@ sap.ui.define([
     }
 
     const rootNode = {
-      text: '<<document name>>',
+      nodeType: NodeType.RootNode,
+      displayName: '<<document name>>',
       icon: 'sap-icon://document-text',
       nodes
     }
-    this._model.setProperty('/nodes', nodes)
-    this._viewMode = viewMode
+
+    this._model.setProperty('/nodes', rootNode)
+    this._model.setProperty('/viewMode', viewMode)
+    this._tree.removeSelections(true)
     this._tree.rerender()
+
+    if (viewMode === ViewMode.Datasource) {
+      this._model.setProperty('/showFooter', false)
+    }
   }
 
   AvailObjects.prototype._createUI = function () {
-    this._tree = new sap.m.Tree()
+    this._tree = new sap.m.Tree({
+      includeItemInSelection: true
+    })
 
     this._tree.attachBrowserEvent('contextmenu', (oEvent) => this._onContextMenu(oEvent))
     this._tree.attachToggleOpenState(() => this._tree.rerender())
@@ -193,16 +251,16 @@ sap.ui.define([
     this._tree.setModel(this._model)
     const item = new sap.m.StandardTreeItem({
       icon: '{icon}',
-      title: '{name}'
+      title: '{displayName}'
     })
 
-    const customData = new sap.ui.core.CustomData({
-      key: 'selectable',
-      value: '{= ${selectable} === false ? "false" : "true" }',
-      writeToDom: true
-    })
+    // const customData = new sap.ui.core.CustomData({
+    //   key: 'selectable',
+    //   value: '{= ${selectable} === false ? "false" : "true" }',
+    //   writeToDom: true
+    // })
 
-    item.addCustomData(customData)
+    // item.addCustomData(customData)
 
     this._tree.bindAggregation('items', {
       path: '/nodes',
@@ -217,16 +275,37 @@ sap.ui.define([
       ]
     })
 
+    const select = new sap.m.Select({
+      change: (oEvent) => this._setViewMode(oEvent.getParameter('selectedItem').getKey())
+    })
+
+    const selectTemplate = new sap.ui.core.Item({
+      key: '{key}',
+      text: '{text}'
+    })
+
+    select.setModel(this._model)
+    select.bindAggregation('items', '/select', selectTemplate)
+    this._attachProperty(select, 'selectedKey', '/viewMode')
+
+    const footer = new sap.m.Toolbar({
+      design: sap.m.ToolbarDesign.Transparent,
+      content: [select]
+    })
+
     this._mainPage = new sap.m.Page({
       showHeader: true,
       customHeader: header,
       showFooter: false,
+      footer,
       content: new sap.m.ScrollContainer({
         height: '100%',
         vertical: true,
         content: this._tree
       })
     })
+
+    this._attachProperty(this._mainPage, 'showFooter', '/showFooter')
 
     this.setMultiSelection(this.getMultiSelection())
     this.setAllowSearch(this.getAllowSearch())
@@ -240,22 +319,71 @@ sap.ui.define([
   // UTILITY FUNCTIONS
   *********************/
 
+  AvailObjects.prototype._processObjects = function (objects) {
+    const map = {}
+    objects.forEach((object) => {
+      if (!map[object.name]) {
+        map[object.name] = 0
+      }
+
+      map[object.name] += 1
+    })
+
+    return objects.map((object) => {
+      const entry = this._toDpObject(object)
+      if (map[object.name] > 1) {
+        entry.displayName += ` (${object.dpName})`
+      }
+      return entry
+    })
+  }
+
   AvailObjects.prototype._toDpObject = function (dpObject) {
     return Object.assign({}, dpObject, {
-      icon: 'sap-icon://accept'
+      nodeType: NodeType.Object,
+      icon: 'sap-icon://accept',
+      displayName: dpObject.name
     })
   }
 
   AvailObjects.prototype._toVariable = function (variable) {
     return Object.assign({}, variable, {
-      icon: 'sap-icon://activate'
+      nodeType: NodeType.Variable,
+      icon: 'sap-icon://activate',
+      displayName: variable.name
     })
   }
 
   AvailObjects.prototype._toReference = function (ref) {
     return Object.assign({}, ref, {
-      icon: 'sap-icon://attachment-video'
+      nodeType: NodeType.Reference,
+      icon: 'sap-icon://attachment-video',
+      displayName: ref.name
     })
+  }
+
+  AvailObjects.prototype._toDataProvider = function (dp) {
+    return Object.assign({}, dp, {
+      nodeType: NodeType.DataProvider,
+      icon: 'sap-icon://folder-blank',
+      displayName: dp.name
+    })
+  }
+
+  AvailObjects.prototype._toDataSource = function (unv) {
+    return Object.assign({}, unv, {
+      nodeType: NodeType.DataSource,
+      icon: 'sap-icon://folder-blank',
+      displayName: unv.name
+    })
+  }
+
+  AvailObjects.prototype._toDataSourceFolder = function (unvFolder) {
+    return {
+      displayName: unvFolder.name,
+      icon: 'sap-icon://folder-blank',
+      nodeType: NodeType.UniverseFolder
+    }
   }
 
   AvailObjects.prototype._processTree = function (inNodes, depth = 0) {

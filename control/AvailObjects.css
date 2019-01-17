@@ -4,6 +4,6 @@
 
 /* [data-selectable="false"] div[role="checkbox"] */
 
-.sapWiseAvailObjects li[data-selectable="false"] div[role="checkbox"] {
+.sapWiseAvailObjects li div[role="checkbox"] {
   display: none;
 }
