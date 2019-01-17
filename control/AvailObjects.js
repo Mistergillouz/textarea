@@ -8,6 +8,12 @@ sap.ui.define([
 ) {
   'use strict'
 
+  const ViewMode = {
+    Alpha: 'Alpha',
+    Query: 'Query',
+    Datasource: 'Datasource'
+  }
+
   const AvailObjects = Control.extend('sap.bi.webi.ui.control.AvailObjects', {
     metadata: {
       properties: {
@@ -37,7 +43,7 @@ sap.ui.define([
   })
 
   AvailObjects.prototype.init = function () {
-    this._mapPages = {}
+    this._viewMode = null
     this._i18nModel = new sap.ui.model.resource.ResourceModel({
       bundleUrl: 'data/i18n_dev.properties'
     })
@@ -49,22 +55,10 @@ sap.ui.define([
     this._model.setDefaultBindingMode(sap.ui.model.BindingMode.TwoWay)
     this._createUI()
 
-    const nodes = this._processNodes([
-      { text: 'Row0' },
-      {
-        text: 'Row1',
-        nodes: [{ text: 'coucou' }]
-      },
-      {
-        text: 'Row2',
-        nodes: [
-          { text: 'Row2/1' },
-          { text: 'Row2/2' }
-        ]
-      }
-    ])
-
-    this._model.setProperty('/nodes', nodes)
+    fetch('control/objects.json')
+      .then(res => res.json())
+      .then(res => this._model.setProperty('/trees', res))
+      .then(() => this._setViewMode(ViewMode.Alpha))
   }
 
   AvailObjects.prototype._render = function (out) {
@@ -131,6 +125,65 @@ sap.ui.define([
   // INTERNAL FUNCTIONS
   ************************/
 
+  AvailObjects.prototype._setViewMode = function (viewMode) {
+    debugger
+    const trees = this._model.getProperty('/trees')
+    
+    let tree = null
+    switch (viewMode) {
+      case ViewMode.Alpha:
+        tree = trees.byAlpha
+        break
+      case ViewMode.Query:
+        tree = trees.byQuery
+        break
+      case ViewMode.Datasource:
+        tree = trees.byFolders
+        break
+      default:
+        tree = null
+    }
+
+    let nodes = []
+    if (tree) {
+      const availObjects = tree.AvailableObjects
+      if (Array.isArray(availObjects)) {
+        nodes = nodes.concat(availObjects.map((object) => this._toDpObject(object)))
+      }
+
+      const variables = tree.Variables
+      if (variables) {
+        if (Array.isArray(variables.variables)) {
+          const variablesNode = {
+            name: '<<Variables>>',
+            selectable: false,
+            icon: 'sap-icon://folder-blank',
+            nodes: variables.variables.map((variable) => this._toVariable(variable))
+          }
+          nodes.push(variablesNode)
+        }
+        if (Array.isArray(variables.references)) {
+          const refsNode = {
+            name: '<<References>>',
+            selectable: false,
+            icon: 'sap-icon://folder-blank',
+            nodes: variables.references.map((reference) => this._toReference(reference))
+          }
+          nodes.push(refsNode)
+        }
+      }
+    }
+
+    const rootNode = {
+      text: '<<document name>>',
+      icon: 'sap-icon://document-text',
+      nodes
+    }
+    this._model.setProperty('/nodes', nodes)
+    this._viewMode = viewMode
+    this._tree.rerender()
+  }
+
   AvailObjects.prototype._createUI = function () {
     this._tree = new sap.m.Tree()
 
@@ -139,12 +192,13 @@ sap.ui.define([
 
     this._tree.setModel(this._model)
     const item = new sap.m.StandardTreeItem({
-      title: '{text}'
+      icon: '{icon}',
+      title: '{name}'
     })
 
     const customData = new sap.ui.core.CustomData({
       key: 'selectable',
-      value: '{selectable}',
+      value: '{= ${selectable} === false ? "false" : "true" }',
       writeToDom: true
     })
 
@@ -186,7 +240,25 @@ sap.ui.define([
   // UTILITY FUNCTIONS
   *********************/
 
-  AvailObjects.prototype._processNodes = function (inNodes, depth = 0) {
+  AvailObjects.prototype._toDpObject = function (dpObject) {
+    return Object.assign({}, dpObject, {
+      icon: 'sap-icon://accept'
+    })
+  }
+
+  AvailObjects.prototype._toVariable = function (variable) {
+    return Object.assign({}, variable, {
+      icon: 'sap-icon://activate'
+    })
+  }
+
+  AvailObjects.prototype._toReference = function (ref) {
+    return Object.assign({}, ref, {
+      icon: 'sap-icon://attachment-video'
+    })
+  }
+
+  AvailObjects.prototype._processTree = function (inNodes, depth = 0) {
     const nodes = inNodes.map((inNode) => {
       const node = Object.assign({}, inNode)
       if (node.nodes) {
