@@ -185,15 +185,22 @@ sap.ui.define([
       case ViewMode.Query:
 
         const dpMap = {}
+        const dpNames = {}
         expressions.forEach((expression) => {
           if (!dpMap[expression.dataProviderId]) {
             dpMap[expression.dataProviderId] = []
+            dpNames[expression.dataProviderId] = expression.dataProviderName
           }
 
           dpMap[expression.dataProviderId].push(expressions)
         })
 
         Object.keys(dpMap).map((dpId) => {
+          const dpNode = this._toDataProvider({
+            dpId,
+            displayName: dpNames[dpId]
+          })
+          
         })
         break
       case ViewMode.Alpha:
