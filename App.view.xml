@@ -6,8 +6,8 @@
    xmlns:mvc="sap.ui.core.mvc">
 
       <control:AvailObjects
-         width="400px"
-         height="800px"
+         width="250px"
+         height="500px"
          allowSearch="false"
          requestContextMenu="onRequestContextMenu"
          isMulti="false"/>

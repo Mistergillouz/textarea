@@ -125,7 +125,10 @@ sap.ui.define([
 
     const menu = new sap.m.Menu({
       items: [
-        new sap.m.MenuItem({text: "item# " + item.name }),
+        new sap.m.MenuItem({
+          text: "item# " + item.name,
+          press: () => alert('Pressed!')
+        }),
         new sap.m.MenuItem({text: "Les Gens"})
       ]
     })

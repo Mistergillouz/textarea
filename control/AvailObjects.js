@@ -85,7 +85,7 @@ sap.ui.define([
 
     fetch('control/objects.json')
       .then(res => res.json())
-      .then(res => this._model.setProperty('/trees', res))
+      .then(res => this._model.setProperty('/dico', res))
       .then(() => this._setViewMode(ViewMode.Alpha))
   }
 
@@ -154,73 +154,74 @@ sap.ui.define([
   ************************/
 
   AvailObjects.prototype._setViewMode = function (viewMode) {
-    const trees = this._model.getProperty('/trees')
-
-    let tree = null
-    switch (viewMode) {
-      case ViewMode.Alpha:
-        tree = trees.byAlpha
-        break
-      case ViewMode.Query:
-        tree = trees.byQuery
-        break
-      case ViewMode.Datasource:
-        tree = trees.byFolders
-        break
-      default:
-        tree = null
-    }
+    const dico = this._model.getProperty('/dico')
 
     let nodes = []
-    if (tree) {
-      const availObjects = tree.AvailableObjects
-      if (Array.isArray(availObjects)) {
-        nodes = nodes.concat(this._processObjects(availObjects))
-      } else if (Array.isArray(tree.DataProviders)) {
-        const dpNodes = tree.DataProviders.map((dp) => {
-          const dpNode = this._toDataProvider(dp)
-          dpNode.nodes = this._processObjects(dp.children)
-          delete dpNode.children
-          return dpNode
-        })
-
-        nodes = nodes.concat(dpNodes)
-      } else if (Array.isArray(tree.universeFolders)) {
-        const dsNodes = tree.universeFolders.map((ds) => {
-          const dsNode = this._toDataSource(ds)
-          dsNode.nodes = ds.children.map((dsFolder) => {
-            const dsFolderNode = this._toDataSourceFolder(dsFolder)
-            dsFolderNode.nodes = this._processObjects(dsFolder.children)
-            return dsFolderNode
-          })
-          delete dsNode.children
-          return dsNode
-        })
-
-        nodes = nodes.concat(dsNodes)
+    
+    const expressions = []
+    if (Array.isArray(dico.expression)) {
+      for (let i = 0; i < dico.expression.length; i++) {
+        const expression = dico.expression[i]
+        const entry = this._toDpObject(expression)
+        if (expression.natureId) {
+          entry.nodes = []
+          while (i < dico.expression.length) {
+            const otherExpression = dico.expression[i + 1]
+            if (otherExpression.associatedDimensionId === expression.id) {
+                entry.nodes.push(this._toDpObject(otherExpression))
+                i += 1
+            } else {
+              break
+            }
+          }
+        }
+        expressions.push(entry)
       }
 
-      const variables = tree.Variables
-      if (variables) {
-        if (Array.isArray(variables.variables)) {
-          const variablesNode = {
-            displayName: '<<Variables>>',
-            nodeType: NodeType.VariableFolder,
-            icon: 'sap-icon://folder-blank',
-            nodes: variables.variables.map((variable) => this._toVariable(variable))
+      this._fixDoubles(expressions)
+    }
+
+    switch (viewMode) {
+      case ViewMode.Query:
+
+        const dpMap = {}
+        expressions.forEach((expression) => {
+          if (!dpMap[expression.dataProviderId]) {
+            dpMap[expression.dataProviderId] = []
           }
-          nodes.push(variablesNode)
-        }
-        if (Array.isArray(variables.references)) {
-          const refsNode = {
-            displayName: '<<References>>',
-            nodeType: NodeType.ReferenceFolder,
-            icon: 'sap-icon://folder-blank',
-            nodes: variables.references.map((reference) => this._toReference(reference))
-          }
-          nodes.push(refsNode)
-        }
+
+          dpMap[expression.dataProviderId].push(expressions)
+        })
+
+        Object.keys(dpMap).map((dpId) => {
+        })
+        break
+      case ViewMode.Alpha:
+        nodes = nodes.concat(expressions)
+        break
+
+      default:
+    }
+
+
+    if (Array.isArray(dico.variable)) {
+      const variablesNode = {
+        displayName: '<<Variables>>',
+        nodeType: NodeType.VariableFolder,
+        icon: 'sap-icon://folder-blank',
+        nodes: dico.variable.map((variable) => this._toVariable(variable))
       }
+      nodes.push(variablesNode)
+    }
+
+    if (Array.isArray(dico.refcell)) {
+      const refsNode = {
+        displayName: '<<References>>',
+        nodeType: NodeType.ReferenceFolder,
+        icon: 'sap-icon://folder-blank',
+        nodes: dico.refcell.map((reference) => this._toReference(reference))
+      }
+      nodes.push(refsNode)
     }
 
     const rootNode = {
@@ -232,12 +233,10 @@ sap.ui.define([
 
     this._model.setProperty('/nodes', rootNode)
     this._model.setProperty('/viewMode', viewMode)
+    this._select.setSelectedKey(viewMode)
+
     this._tree.removeSelections(true)
     this._tree.rerender()
-
-    if (viewMode === ViewMode.Datasource) {
-      this._model.setProperty('/showFooter', false)
-    }
   }
 
   AvailObjects.prototype._createUI = function () {
@@ -264,7 +263,10 @@ sap.ui.define([
 
     this._tree.bindAggregation('items', {
       path: '/nodes',
-      template: item
+      template: item,
+      parameters : {
+        arrayNames : ['nodes']
+      }
     })
 
     const header = new sap.m.Toolbar({
@@ -275,7 +277,7 @@ sap.ui.define([
       ]
     })
 
-    const select = new sap.m.Select({
+    this._select = new sap.m.Select({
       change: (oEvent) => this._setViewMode(oEvent.getParameter('selectedItem').getKey())
     })
 
@@ -284,19 +286,18 @@ sap.ui.define([
       text: '{text}'
     })
 
-    select.setModel(this._model)
-    select.bindAggregation('items', '/select', selectTemplate)
-    this._attachProperty(select, 'selectedKey', '/viewMode')
+    this._select.setModel(this._model)
+    this._select.bindAggregation('items', '/select', selectTemplate)
 
     const footer = new sap.m.Toolbar({
       design: sap.m.ToolbarDesign.Transparent,
-      content: [select]
+      content: [this._select]
     })
 
     this._mainPage = new sap.m.Page({
       showHeader: true,
       customHeader: header,
-      showFooter: false,
+      showFooter: true,
       footer,
       content: new sap.m.ScrollContainer({
         height: '100%',
@@ -304,8 +305,6 @@ sap.ui.define([
         content: this._tree
       })
     })
-
-    this._attachProperty(this._mainPage, 'showFooter', '/showFooter')
 
     this.setMultiSelection(this.getMultiSelection())
     this.setAllowSearch(this.getAllowSearch())
@@ -319,7 +318,7 @@ sap.ui.define([
   // UTILITY FUNCTIONS
   *********************/
 
-  AvailObjects.prototype._processObjects = function (objects) {
+  AvailObjects.prototype._fixDoubles = function (objects) {
     const map = {}
     objects.forEach((object) => {
       if (!map[object.name]) {
@@ -329,12 +328,10 @@ sap.ui.define([
       map[object.name] += 1
     })
 
-    return objects.map((object) => {
-      const entry = this._toDpObject(object)
+    objects.forEach((object) => {
       if (map[object.name] > 1) {
-        entry.displayName += ` (${object.dpName})`
+        object.displayName += ` (${object.dataProviderName})`
       }
-      return entry
     })
   }
 
