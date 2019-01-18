@@ -17,6 +17,12 @@ sap.ui.define([
   const NodeType = {
     RootNode: 'RootNode',
     Object: 'Object',
+    LinkFolder: 'LinkFolder',
+    Link: 'Link',
+    TimeDimension: 'TimeDimension',
+    TimeLevel: 'TimeLevel',
+    Geo: 'Geo',
+    GeoLevel: 'GeoLevel',
     VariableFolder: 'VariableFolder',
     Variable: 'Variable',
     ReferenceFolder: 'ReferenceFolder',
@@ -24,6 +30,11 @@ sap.ui.define([
     DataProvider: 'DataProvider',
     DataSource: 'DataSource',
     DataSourceFolder: 'DataSourceFolder'
+  }
+
+  const NodeState = {
+    Normal: 'Normal',
+    Incompatible: 'Incompatible'
   }
 
   const AvailObjects = Control.extend('sap.bi.webi.ui.control.AvailObjects', {
@@ -157,8 +168,7 @@ sap.ui.define([
     const dico = this._model.getProperty('/dico')
 
     let nodes = []
-    
-    const expressions = []
+    let expressions = []
     if (Array.isArray(dico.expression)) {
       for (let i = 0; i < dico.expression.length; i++) {
         const expression = dico.expression[i]
@@ -168,22 +178,22 @@ sap.ui.define([
           while (i < dico.expression.length) {
             const otherExpression = dico.expression[i + 1]
             if (otherExpression.associatedDimensionId === expression.id) {
-                entry.nodes.push(this._toDpObject(otherExpression))
-                i += 1
+              entry.nodes.push(this._toDpObject(otherExpression))
+              i += 1
             } else {
               break
             }
           }
+          this._applyNatureId(entry)
         }
         expressions.push(entry)
       }
-
-      this._fixDoubles(expressions)
     }
 
     switch (viewMode) {
       case ViewMode.Query:
 
+        // Split each object in its own dataprovider folder
         const dpMap = {}
         const dpNames = {}
         expressions.forEach((expression) => {
@@ -192,42 +202,66 @@ sap.ui.define([
             dpNames[expression.dataProviderId] = expression.dataProviderName
           }
 
-          dpMap[expression.dataProviderId].push(expressions)
+          dpMap[expression.dataProviderId].push(expression)
         })
 
-        Object.keys(dpMap).map((dpId) => {
+        // Create dataprovider folders
+        const dpNodes = Object.keys(dpMap).map((dpId) => {
           const dpNode = this._toDataProvider({
             dpId,
-            displayName: dpNames[dpId]
+            name: dpNames[dpId],
+            nodes: dpMap[dpId]
           })
-          
+          return dpNode
         })
+        nodes = nodes.concat(dpNodes)
+
+        // Create a merged dimensions folder with all links
+        if (Array.isArray(dico.link)) {
+          const linkFolderNode = this._newEntry(NodeType.LinkFolder, {
+            displayName: '<<Merged Dimensions>>',
+            icon: 'sap-icon://folder-blank',
+            nodes: dico.link.map((link) => this._processLink(link, expressions, viewMode))
+          })
+
+          nodes.push(linkFolderNode)
+        }
         break
+
       case ViewMode.Alpha:
+        // Add links and remove it from expressions
+        if (Array.isArray(dico.link)) {
+          const linkNodes = dico.link.map((link) => this._processLink(link, expressions, viewMode))
+          expressions = expressions.concat(linkNodes)
+        }
+
+        // Take care of objects with same name coming from differents dataproviders
+        this._fixDuplicate(expressions)
+        // Finally sort the list!
+        expressions.sort((a, b) => a.displayName.localeCompare(b.displayName))
         nodes = nodes.concat(expressions)
         break
 
       default:
     }
 
-
+    // Handle variables
     if (Array.isArray(dico.variable)) {
-      const variablesNode = {
+      const variablesNode = this._newEntry(NodeType.VariableFolder, {
         displayName: '<<Variables>>',
-        nodeType: NodeType.VariableFolder,
         icon: 'sap-icon://folder-blank',
         nodes: dico.variable.map((variable) => this._toVariable(variable))
-      }
+      })
       nodes.push(variablesNode)
     }
 
+    // Handle references
     if (Array.isArray(dico.refcell)) {
-      const refsNode = {
+      const refsNode = this._newEntry(NodeType.ReferenceFolder, {
         displayName: '<<References>>',
-        nodeType: NodeType.ReferenceFolder,
         icon: 'sap-icon://folder-blank',
         nodes: dico.refcell.map((reference) => this._toReference(reference))
-      }
+      })
       nodes.push(refsNode)
     }
 
@@ -260,19 +294,19 @@ sap.ui.define([
       title: '{displayName}'
     })
 
-    // const customData = new sap.ui.core.CustomData({
-    //   key: 'selectable',
-    //   value: '{= ${selectable} === false ? "false" : "true" }',
-    //   writeToDom: true
-    // })
+    const customData = new sap.ui.core.CustomData({
+      key: 'state',
+      value: '{nodeState}',
+      writeToDom: true
+    })
 
-    // item.addCustomData(customData)
+    item.addCustomData(customData)
 
     this._tree.bindAggregation('items', {
       path: '/nodes',
       template: item,
-      parameters : {
-        arrayNames : ['nodes']
+      parameters: {
+        arrayNames: ['nodes']
       }
     })
 
@@ -317,15 +351,29 @@ sap.ui.define([
     this.setAllowSearch(this.getAllowSearch())
   }
 
-  /****************
-  // FORMATTERS
-  *****************/
-
   /********************
   // UTILITY FUNCTIONS
   *********************/
 
-  AvailObjects.prototype._fixDoubles = function (objects) {
+  AvailObjects.prototype._processLink = function (link, expressions, viewMode) {
+    const linkNode = this._toLink(link)
+    linkNode.nodes = []
+    link.linkedExpressions.linkedExpression.forEach((linkExpression) => {
+      const index = expressions.findIndex((expr) => expr.id === linkExpression['@id'])
+      if (index !== -1) {
+        const expression = expressions[index]
+        expression.displayName += ` (${expression.dataProviderName})`
+        linkNode.nodes.push(expression)
+        // In the view alpha mode, linkedExpressions need to be removed from the list (else it will appear twice)
+        if (viewMode === ViewMode.Alpha) {
+          expressions.splice(index, 1)
+        }
+      }
+    })
+    return linkNode
+  }
+
+  AvailObjects.prototype._fixDuplicate = function (objects) {
     const map = {}
     objects.forEach((object) => {
       if (!map[object.name]) {
@@ -343,64 +391,86 @@ sap.ui.define([
   }
 
   AvailObjects.prototype._toDpObject = function (dpObject) {
-    return Object.assign({}, dpObject, {
-      nodeType: NodeType.Object,
+    return this._newEntry(NodeType.Object, dpObject, {
       icon: 'sap-icon://accept',
       displayName: dpObject.name
     })
   }
 
+  AvailObjects.prototype._toLink = function (link) {
+    return this._newEntry(NodeType.Link, link, {
+      icon: 'sap-icon://chain-link',
+      displayName: link.name
+    })
+  }
+
   AvailObjects.prototype._toVariable = function (variable) {
-    return Object.assign({}, variable, {
-      nodeType: NodeType.Variable,
+    return this._newEntry(NodeType.Variable, variable, {
       icon: 'sap-icon://activate',
       displayName: variable.name
     })
   }
 
   AvailObjects.prototype._toReference = function (ref) {
-    return Object.assign({}, ref, {
-      nodeType: NodeType.Reference,
+    return this._newEntry(NodeType.Reference, ref, {
       icon: 'sap-icon://attachment-video',
       displayName: ref.name
     })
   }
 
   AvailObjects.prototype._toDataProvider = function (dp) {
-    return Object.assign({}, dp, {
-      nodeType: NodeType.DataProvider,
+    return this._newEntry(NodeType.DataProvider, dp, {
       icon: 'sap-icon://folder-blank',
       displayName: dp.name
     })
   }
 
   AvailObjects.prototype._toDataSource = function (unv) {
-    return Object.assign({}, unv, {
-      nodeType: NodeType.DataSource,
+    return this._newEntry(NodeType.DataSource, unv, {
       icon: 'sap-icon://folder-blank',
       displayName: unv.name
     })
   }
 
   AvailObjects.prototype._toDataSourceFolder = function (unvFolder) {
-    return {
+    return this._newEntry(NodeType.UniverseFolder, unvFolder, {
       displayName: unvFolder.name,
-      icon: 'sap-icon://folder-blank',
-      nodeType: NodeType.UniverseFolder
-    }
+      icon: 'sap-icon://folder-blank'
+    })
   }
 
-  AvailObjects.prototype._processTree = function (inNodes, depth = 0) {
-    const nodes = inNodes.map((inNode) => {
-      const node = Object.assign({}, inNode)
-      if (node.nodes) {
-        node.nodes = this._processNodes(node.nodes, depth + 1)
-      }
-      node.selectable = String(depth > 0)
-      return node
-    })
+  AvailObjects.prototype._newEntry = function (nodeType, object, args) {
+    return Object.assign({
+      nodeType,
+      nodeState: NodeState.Normal
+    }, object, args)
+  }
 
-    return nodes
+  AvailObjects.prototype._applyNatureId = function (node) {
+    let icon = null
+    let nodeType = null
+    let nodeLevelType = null
+
+    switch (node.natureId) {
+      case 'Time':
+        icon = 'sap-icon://history'
+        nodeType = NodeType.TimeDimension
+        nodeLevelType = NodeType.TimeLevel
+        break
+      case 'Geography':
+        icon = 'sap-icon://world'
+        nodeType = NodeType.Geo
+        nodeLevelType = NodeType.GeoLevel
+        break
+
+      default:
+    }
+
+    if (icon && nodeType) {
+      node.icon = icon
+      node.nodeType = nodeType
+      node.nodes.forEach((childNode) => (childNode.nodeType = nodeLevelType))
+    }
   }
 
   AvailObjects.prototype._attachProperty = function (component, property, value, callback) {
