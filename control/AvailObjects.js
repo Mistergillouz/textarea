@@ -55,6 +55,28 @@ sap.ui.define([
         allowSearch: {
           type: 'boolean',
           defaultValue: true
+        },
+        // If you have a full dictionary object use it else
+        // use each others properties (expressions/var/ref/links)
+        dictionary: {
+          type: 'object',
+          defaultValue: null
+        },
+        expressions: {
+          type: 'array',
+          defaultValue: null
+        },
+        variables: {
+          type: 'array',
+          defaultValue: null
+        },
+        references: {
+          type: 'array',
+          defaultValue: null
+        },
+        links: {
+          type: 'array',
+          defaultValue: null
         }
       },
       events: {
@@ -96,8 +118,14 @@ sap.ui.define([
 
     fetch('control/objects.json')
       .then(res => res.json())
-      .then(res => this._model.setProperty('/dico', res))
-      .then(() => this._setViewMode(ViewMode.Alpha))
+      .then(res => {
+        this.setDictionary(res)
+        // this.setExpressions(res.expression)
+        // this.setVariables(res.variable)
+        // this.setReferences(res.reference)
+        // this.setLinks(res.link)
+      })
+      .then(() => this._setViewMode(ViewMode.Query))
   }
 
   AvailObjects.prototype._render = function (out) {
@@ -125,6 +153,34 @@ sap.ui.define([
   AvailObjects.prototype.setMultiSelection = function (multi) {
     this.setProperty('multiSelection', multi, true)
     this._tree.setMode(multi ? 'MultiSelect' : 'SingleSelectMaster')
+  }
+
+  AvailObjects.prototype.setDictionary = function (dictionary) {
+    this.setProperty('expressions', dictionary.expression || [], true)
+    this.setProperty('variables', dictionary.variable || [], true)
+    this.setProperty('references', dictionary.refcell || [], true)
+    this.setProperty('links', dictionary.link || [], true)
+    this._buildTree()
+  }
+
+  AvailObjects.prototype.setExpressions = function (expressions) {
+    this.setProperty('expressions', expressions || [], true)
+    this._buildTree()
+  }
+
+  AvailObjects.prototype.setVariables = function (variables) {
+    this.setProperty('variables', variables || [], true)
+    this._buildTree()
+  }
+
+  AvailObjects.prototype.setReferences = function (references) {
+    this.setProperty('references', references || [], true)
+    this._buildTree()
+  }
+
+  AvailObjects.prototype.setLinks = function (links) {
+    this.setProperty('links', links || [], true)
+    this._buildTree()
   }
 
   /***********************
@@ -177,29 +233,33 @@ sap.ui.define([
   ************************/
 
   AvailObjects.prototype._setViewMode = function (viewMode) {
-    const dico = this._model.getProperty('/dico')
+    this._model.setProperty('/viewMode', viewMode)
+    this._select.setSelectedKey(viewMode)
+    this._buildTree()
+  }
 
+  AvailObjects.prototype._buildTree = function () {
     let nodes = []
     let expressions = []
-    if (Array.isArray(dico.expression)) {
-      for (let i = 0; i < dico.expression.length; i++) {
-        const expression = dico.expression[i]
-        const entry = this._toDpObject(expression)
-        if (expression.natureId) {
-          entry.nodes = []
-          while (i < dico.expression.length) {
-            const otherExpression = dico.expression[i + 1]
-            if (otherExpression.associatedDimensionId === expression.id) {
-              entry.nodes.push(this._toDpObject(otherExpression))
-              i += 1
-            } else {
-              break
-            }
+    const viewMode = this._model.getProperty('/viewMode')
+    const dictExpressions = this.getExpressions()
+    for (let i = 0; i < dictExpressions.length; i++) {
+      const expression = dictExpressions[i]
+      const entry = this._toDpObject(expression)
+      if (expression.natureId) {
+        entry.nodes = []
+        while (i < dictExpressions.length) {
+          const otherExpression = dictExpressions[i + 1]
+          if (otherExpression.associatedDimensionId === expression.id) {
+            entry.nodes.push(this._toDpObject(otherExpression))
+            i += 1
+          } else {
+            break
           }
-          this._applyNatureId(entry)
         }
-        expressions.push(entry)
+        this._applyNatureId(entry)
       }
+      expressions.push(entry)
     }
 
     switch (viewMode) {
@@ -229,11 +289,11 @@ sap.ui.define([
         nodes = nodes.concat(dpNodes)
 
         // Create a merged dimensions folder with all links
-        if (Array.isArray(dico.link)) {
+        if (Array.isArray(this.getLinks())) {
           const linkFolderNode = this._newEntry(NodeType.LinkFolder, {
             displayName: '<<Merged Dimensions>>',
             icon: 'sap-icon://folder-blank',
-            nodes: dico.link.map((link) => this._processLink(link, expressions, viewMode))
+            nodes: this.getLinks().map((link) => this._processLink(link, expressions, viewMode))
           })
 
           nodes.push(linkFolderNode)
@@ -242,8 +302,8 @@ sap.ui.define([
 
       case ViewMode.Alpha:
         // Add links and remove it from expressions
-        if (Array.isArray(dico.link)) {
-          const linkNodes = dico.link.map((link) => this._processLink(link, expressions, viewMode))
+        if (Array.isArray(this.getLinks())) {
+          const linkNodes = this.getLinks().map((link) => this._processLink(link, expressions, viewMode))
           expressions = expressions.concat(linkNodes)
         }
 
@@ -258,21 +318,21 @@ sap.ui.define([
     }
 
     // Handle variables
-    if (Array.isArray(dico.variable)) {
+    if (Array.isArray(this.getVariables())) {
       const variablesNode = this._newEntry(NodeType.VariableFolder, {
         displayName: '<<Variables>>',
         icon: 'sap-icon://folder-blank',
-        nodes: dico.variable.map((variable) => this._toVariable(variable))
+        nodes: this.getVariables().map((variable) => this._toVariable(variable))
       })
       nodes.push(variablesNode)
     }
 
     // Handle references
-    if (Array.isArray(dico.refcell)) {
+    if (Array.isArray(this.getReferences())) {
       const refsNode = this._newEntry(NodeType.ReferenceFolder, {
         displayName: '<<References>>',
         icon: 'sap-icon://folder-blank',
-        nodes: dico.refcell.map((reference) => this._toReference(reference))
+        nodes: this.getReferences().map((reference) => this._toReference(reference))
       })
       nodes.push(refsNode)
     }
@@ -284,9 +344,6 @@ sap.ui.define([
     })
 
     this._model.setProperty('/nodes', [rootNode])
-    this._model.setProperty('/viewMode', viewMode)
-    this._select.setSelectedKey(viewMode)
-
     this._tree.expandToLevel(1)
     this._tree.removeSelections(true)
     this._tree.rerender()
@@ -531,11 +588,10 @@ sap.ui.define([
 
   AvailObjects.prototype._getLinkedObjectDpNames = function (id) {
     let dpNames = []
-    const dico = this._model.getProperty('/dico')
     const link = this._getLinkedObject(id)
     if (link) {
       dpNames = link.linkedExpressions.linkedExpression.map((linkExpression) => {
-        const expression = dico.expression.find((expr) => expr.id === linkExpression['@id'])
+        const expression = this.getExpressions().find((expr) => expr.id === linkExpression['@id'])
         return expression ? expression.dataProviderName : ''
       })
     }
@@ -544,9 +600,8 @@ sap.ui.define([
 
   AvailObjects.prototype._getLinkedObject = function (id) {
     let targetLink = null
-    const dico = this._model.getProperty('/dico')
-    if (Array.isArray(dico.link)) {
-      targetLink = dico.link.find((link) => {
+    if (Array.isArray(this.getLinks())) {
+      targetLink = this.getLinks().find((link) => {
         if (link.id === id) {
           return true
         }
