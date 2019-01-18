@@ -10,6 +10,7 @@
          height="500px"
          allowSearch="false"
          requestContextMenu="onRequestContextMenu"
+         selectionChanged="onSelectionChanged"
          isMulti="false"/>
    
 </mvc:View>

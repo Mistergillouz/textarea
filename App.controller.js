@@ -119,6 +119,10 @@ sap.ui.define([
     return this.getView().getViewData()
   }
 
+  C.prototype.onSelectionChanged = function (oEvent) {
+    console.log(oEvent)
+  }
+
   C.prototype.onRequestContextMenu = function (oEvent) {
     const item = oEvent.getParameter('listItem').getBindingContext().getObject()
     const done = oEvent.getParameter('done')

@@ -59,7 +59,7 @@ sap.ui.define([
       },
       events: {
         requestContextMenu: {},
-        selectionChange: {}
+        selectionChanged: {}
       }
     },
     renderer: (out, self) => self._render(out)
@@ -131,6 +131,18 @@ sap.ui.define([
   // EVENT HANDLERS
   ************************/
 
+  AvailObjects.prototype._onSelectionChanged = function (oEvent) {
+    const listItems = this._tree.getSelectedItems()
+    this.fireSelectionChanged({
+      listItems
+    })
+
+    // T0D0: A optimiser
+    this._handleIncompatibleObjects(listItems)
+    this._model.refresh(true)
+    // this._tree.rerender()
+  }
+
   AvailObjects.prototype._onContextMenu = function (oMouseEvent) {
     oMouseEvent.preventDefault()
     const items = this._tree.getItems()
@@ -144,7 +156,7 @@ sap.ui.define([
       })
     }
   }
-  
+
   AvailObjects.prototype._onSearch = function (oEvent) {
     // add filter for search
     const aFilters = []
@@ -265,24 +277,25 @@ sap.ui.define([
       nodes.push(refsNode)
     }
 
-    const rootNode = {
-      nodeType: NodeType.RootNode,
+    const rootNode = this._newEntry(NodeType.RootNode, {
       displayName: '<<document name>>',
       icon: 'sap-icon://document-text',
       nodes
-    }
+    })
 
-    this._model.setProperty('/nodes', rootNode)
+    this._model.setProperty('/nodes', [rootNode])
     this._model.setProperty('/viewMode', viewMode)
     this._select.setSelectedKey(viewMode)
 
+    this._tree.expandToLevel(1)
     this._tree.removeSelections(true)
     this._tree.rerender()
   }
 
   AvailObjects.prototype._createUI = function () {
     this._tree = new sap.m.Tree({
-      includeItemInSelection: true
+      includeItemInSelection: true,
+      selectionChange: (oEvent) => this._onSelectionChanged(oEvent)
     })
 
     this._tree.attachBrowserEvent('contextmenu', (oEvent) => this._onContextMenu(oEvent))
@@ -473,9 +486,96 @@ sap.ui.define([
     }
   }
 
-  AvailObjects.prototype._attachProperty = function (component, property, value, callback) {
-    component.setModel(this._model)
-    component.bindProperty(property, value, callback)
+  // Code taken from ajaxResultObjects.js function setIncompatibleObjects(node, arrDPNames) 
+  AvailObjects.prototype._handleIncompatibleObjects = function (selectedItems) {
+    const arrDPNames = []
+    selectedItems.forEach((item) => {
+      const node = item.getBindingContext().getObject()
+      const qualification = node['@qualification']
+      if (qualification && qualification !== 'Measure') {
+        let names = this._getLinkedObjectDpNames(node.id)
+        if (names.length === 0) {
+          names = [node.dataProviderName]
+        }
+        names.forEach((name) => {
+          if (name && arrDPNames.indexOf(name) === -1) {
+            arrDPNames.push(name)
+          }
+        })
+      }
+    })
+
+    const nodes = this._model.getProperty('/nodes')
+    this._visitNodes(nodes, (node) => (node.nodeState = NodeState.Normal))
+    this._setIncompatibleObjects(nodes, arrDPNames)
+  }
+
+  AvailObjects.prototype._setIncompatibleObjects = function (nodes, arrDPNames) {
+    nodes.forEach((node) => {
+      const kind = node['@qualification']
+      if (kind && kind !== 'Measure' && node.nodeType !== NodeType.Variable) {
+        let arr = this._getLinkedObjectDpNames(node.id)
+        if (arr.length === 0) {
+          arr = [node.dataProviderName]
+        }
+
+        if (!this._arrayIntersection(arrDPNames, arr)) {
+          node.nodeState = NodeState.Incompatible
+        }
+      }
+      if (Array.isArray(node.nodes)) {
+        this._setIncompatibleObjects(node.nodes, arrDPNames)
+      }
+    })
+  }
+
+  AvailObjects.prototype._getLinkedObjectDpNames = function (id) {
+    let dpNames = []
+    const dico = this._model.getProperty('/dico')
+    const link = this._getLinkedObject(id)
+    if (link) {
+      dpNames = link.linkedExpressions.linkedExpression.map((linkExpression) => {
+        const expression = dico.expression.find((expr) => expr.id === linkExpression['@id'])
+        return expression ? expression.dataProviderName : ''
+      })
+    }
+    return dpNames
+  }
+
+  AvailObjects.prototype._getLinkedObject = function (id) {
+    let targetLink = null
+    const dico = this._model.getProperty('/dico')
+    if (Array.isArray(dico.link)) {
+      targetLink = dico.link.find((link) => {
+        if (link.id === id) {
+          return true
+        }
+        return link.linkedExpressions.linkedExpression.some((linkExpression) => id === linkExpression['@id'])
+      })
+    }
+
+    return targetLink
+  }
+
+  // Code taken from ajaxResultObjects.js
+  AvailObjects.prototype._arrayIntersection = function (arr1, arr2) {
+    let ret = true
+    for (let i = 0; i < arr1.length; i++) {
+      if (arr2.indexOf(arr1[i]) < 0) {
+        ret = false
+        break
+      }
+    }
+    return ret
+  }
+
+  AvailObjects.prototype._visitNodes = function (nodes, callback) {
+    nodes.forEach((node) => {
+      callback(node)
+      if (Array.isArray(node.nodes)) {
+        this._visitNodes(node.nodes, callback)
+      }
+    })
   }
 
   return AvailObjects

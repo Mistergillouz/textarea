@@ -7,3 +7,8 @@
 .sapWiseAvailObjects li div[role="checkbox"] {
   display: none;
 }
+
+.sapWiseAvailObjects li[data-state="Incompatible"] {
+  font-style: italic;
+  color: lightgray;
+}
