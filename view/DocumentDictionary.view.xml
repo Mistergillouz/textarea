@@ -1,0 +1,80 @@
+<mvc:View 
+  controllerName="sap.bi.webi.components.document.dictionary.controller.DocumentDictionary"
+  height="100%"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns:core="sap.ui.core"
+  xmlns:control="sap.bi.webi.ui.control"
+  xmlns="sap.m">
+
+  <Page class="sapUiSizeCompact sapWiseDocDictionary" showHeader="true">
+    <customHeader>
+      <Toolbar>
+        <SearchField width="100%" liveChange="onSearch"/>
+      </Toolbar>
+    </customHeader>
+    <subHeader>
+      <Toolbar design="Transparent" class="sapWiseDocDictionary2ndTb">
+        <Button text="{i18n>aot.showObjectByType}" icon="sap-icon://navigation-down-arrow" iconFirst="false"/>
+        <Button text="Multiselect" press="onMultiSelect" tooltip="Ceci est un tooltip"/>
+      </Toolbar>
+    </subHeader>
+
+    <content>
+
+      <Panel headerText="{i18n>aot.dimensions}" expandable="true" expanded="true" width="auto" visible="{= ${/dimensions/length} > 0}">
+        <content>
+          <Tree items="{path: '/dimensions', parameters: { arrayNames: ['nodes'] }}" showSeparators="None" includeItemInSelection="true" id="treeDimensions"
+            mode="{/selectMode}">
+            <core:Fragment fragmentName="sap.bi.webi.fragment.DocumentDictionaryRow" type="XML" />
+          </Tree>
+        </content>
+      </Panel>
+
+      <Panel headerText="{i18n>aot.measures}" expandable="true" expanded="false" width="auto" visible="{= ${/measures/length} > 0}">
+        <content>
+          <Tree items="{path: '/measures', parameters: { arrayNames: ['nodes'] }}" showSeparators="None" includeItemInSelection="true" id="treeMeasures"
+            mode="{/selectMode}">
+            <core:Fragment fragmentName="sap.bi.webi.fragment.DocumentDictionaryRow" type="XML" />
+          </Tree>
+        </content>
+      </Panel>
+
+      <Panel expandable="true" expanded="false" width="auto">
+        <headerToolbar>
+          <Toolbar style="Clear">
+            <Title text="{i18n>aot.variables}" />
+            <ToolbarSpacer />
+            <Button icon="sap-icon://add" press="onCreateVariable" />
+          </Toolbar>
+        </headerToolbar>
+        <content>
+          <Tree items="{path: '/variables', parameters: { arrayNames: ['nodes'] }}" showSeparators="None" includeItemInSelection="true" id="treeVariables"
+            mode="{/selectMode}">
+            <core:Fragment fragmentName="sap.bi.webi.fragment.DocumentDictionaryRow" type="XML" />
+          </Tree>
+        </content>
+      </Panel>
+
+      <Panel headerText="{i18n>aot.references}" expandable="true" expanded="false" width="auto">
+        <content>
+          <Tree items="{path: '/references', parameters: { arrayNames: ['nodes'] }}" showSeparators="None" includeItemInSelection="true" id="treeReferences"
+            mode="{/selectMode}">
+            <core:Fragment fragmentName="sap.bi.webi.fragment.DocumentDictionaryRow" type="XML" />
+          </Tree>
+        </content>
+      </Panel>
+
+    </content>
+  </Page>
+  <!-- <control:AvailObjects
+    id="availObjects"
+    width="100%"
+    height="100%"
+    allowSearch="false"
+    dictionary="{/dictionary}"
+    documentName="{/documentName}"
+    requestContextMenu="onRequestContextMenu"
+    selectionChanged="onSelectionChanged"
+    isMulti="false"/> -->
+  
+</mvc:View> 

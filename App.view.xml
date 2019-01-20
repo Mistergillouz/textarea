@@ -5,12 +5,13 @@
    xmlns:core="sap.ui.core"
    xmlns:mvc="sap.ui.core.mvc">
 
-      <control:AvailObjects
+    <mvc:XMLView viewName="sap.bi.webi.components.document.dictionary.view.DocumentDictionary" />
+      <!-- <control:AvailObjects
          width="250px"
          height="500px"
          allowSearch="false"
          requestContextMenu="onRequestContextMenu"
          selectionChanged="onSelectionChanged"
-         isMulti="false"/>
+         isMulti="false"/> -->
    
 </mvc:View>

@@ -1,0 +1,45 @@
+<core:FragmentDefinition xmlns="sap.m"
+                         xmlns:core="sap.ui.core"
+                         xmlns:control="sap.bi.webi.ui.control"
+                         xmlns:l="sap.ui.layout">
+    <CustomTreeItem
+      class="wingTestDictionaryItem sapWingDictionaryDimensionItem">
+      <HBox width="100%" alignItems="Center" justifyContent="SpaceBetween">
+        <HBox>
+          <core:Icon
+            class="wingTestDictionaryItemIcon sapUiTinyMarginBeginEnd"
+            src="{icon}" />
+          <Text
+            class="wingTestBreakDimensionName sapWingBreakDimensionName"
+            maxLines="1"
+            text="{displayName}"/>
+        </HBox>
+        <HBox>
+          <core:Icon 
+            class="wingTestDictionaryItemMenuButton"
+            src="sap-icon://overflow"
+            tooltip="{i18n>aot.more}"
+            visible="{hasMoreMenu}"
+            press="onMoreMenuPressed"/>
+        </HBox>
+      </HBox>
+      <customData>
+        <core:CustomData key="select" value="{= String(${hasMoreMenu})}" writeToDom="true" />
+      </customData>
+      <tooltip>
+        <control:RichTooltip>
+          <VBox class="sapUiTinyMargin">
+            <HBox class="sapUiTinyMarginBottom">
+              <core:Icon class="sapUiTinyMarginEnd" src="{icon}"/>
+              <Label design="Bold" text="{displayName}"/>
+            </HBox>
+            <Text text="{description}"/>
+            <HBox class="sapUiTinyMarginTop" alignItems="Start" justifyContent="Start">
+              <Text text="Type: "/>
+              <Label design="Bold" text="{@dataType}"/>
+            </HBox>
+          </VBox>
+        </control:RichTooltip>
+      </tooltip>
+    </CustomTreeItem>
+</core:FragmentDefinition>

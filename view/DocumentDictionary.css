@@ -1,0 +1,17 @@
+.sapWiseDocDictionary {
+  height: 600px !important;
+}
+
+.sapWiseDocDictionary .sapMPanelContent {
+  border-bottom: 0 !important;
+  padding: 0 0 0 .5rem;
+}
+
+.sapWiseDocDictionary .sapWiseDocDictionary2ndTb {
+  background: white;
+  padding-left: 0 !important;
+}
+
+.sapWiseDocDictionary li[data-select="false"] div[role="checkbox"] {
+  display: none;
+}
