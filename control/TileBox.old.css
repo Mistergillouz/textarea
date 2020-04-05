@@ -1,0 +1,38 @@
+.sapWrcTileBox {
+  position: relative;
+  background: gray;
+}
+.sapWrcTileBox .sapWrcTileBoxGrid {
+  display: grid;
+}
+.sapWrcTileBox .sapWrcTileBoxResizer {
+  position: absolute;
+  height: 0.5rem;
+  right: 0;
+  left: 0;
+  bottom: unset;
+  background: yellow;
+  cursor: row-resize;
+}
+.sapWrcTileBox.sapWrcTileBoxNoScrollBar .sapWrcTileBoxGrid {
+  overflow: hidden;
+}
+.sapWrcTileBox:not(.sapWrcTileBoxNoScrollBar) .sapWrcTileBoxGrid {
+  overflow: auto;
+}
+.sapWrcTileBox:not(.sapWrcTileBoxNoScrollBar) .sapWrcTileBoxGrid::-webkit-scrollbar {
+  width: 0.5rem !important;
+  height: 0.5rem !important;
+  background-color: #a8d3e08f !important;
+}
+.sapWrcTileBox:not(.sapWrcTileBoxNoScrollBar) .sapWrcTileBoxGrid::-webkit-scrollbar-track {
+  border-radius: 0.25rem !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+.sapWrcTileBox:not(.sapWrcTileBoxNoScrollBar) .sapWrcTileBoxGrid::-webkit-scrollbar-thumb {
+  background-color: #00aeff !important;
+  border-radius: 0.25rem !important;
+}
+.sapWrcTileBox:not(.sapWrcTileBoxNoScrollBar) .sapWrcTileBoxGrid::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

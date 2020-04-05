@@ -5,10 +5,22 @@
       <meta charset="UTF-8">
       <title>Walkthrough</title>
 
-      <link rel="stylesheet" type="text/css" href="view/DocumentDictionary.css">
-      <link rel="stylesheet" type="text/css" href="control/AvailObjects.css">
-      <link rel="stylesheet" type="text/css" href="control/FormulaTextArea.css">
-      <link rel="stylesheet" type="text/css" href="control/LOV.css">
+      <link rel="stylesheet" type="text/css" href="styles/styles.css">
+      <link rel="stylesheet" type="text/css" href="control/TileBox.css">
+      <link rel="stylesheet" type="text/css" href="control/GetStartedTile.css">
+      <link rel="stylesheet" type="text/css" href="pagehighlight.css">
+      <link rel="stylesheet" type="text/css" href="control/Tile.css">
+      <link rel="stylesheet" type="text/css" href="control/Opened.css">
+      <link rel="stylesheet" type="text/css" href="control/PageNav.css">
+      <link rel="stylesheet" type="text/css" href="controller/OpenedDocumentPopover.css">
+      <link rel="stylesheet" type="text/css" href="control/Tetris.css">
+      <style>
+         html {
+           height: 100%;
+         }
+
+
+      </style>
       <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
       <script src="polyfill.min.js"></script>
       <script
@@ -16,6 +28,7 @@
          src="sapui/resources/sap-ui-core.js"
          data-sap-ui-theme="sap_bluecrystal"
          data-sap-ui-libs="sap.m"
+         data-sap-ui-rtl="false"
          data-sap-ui-compatVersion="edge"
          data-sap-ui-preload="async"
          data-sap-ui-resourceroots='{
@@ -24,16 +37,23 @@
             "ui": "./ui",
             "fragment": "./fragments",
             "sap.bi.webi.components.document.dictionary": "./",
-            "sap.bi.webi": "./"
+            "sap.bi.webi": "./",
+            "sap/bi/wrc": "./"
          }' >
       </script>
       <script>
          sap.ui.getCore().attachInit(function () {
+            // sap.ui.getCore().getConfiguration().setLanguage('en')
+
+            var oBundle = new sap.ui.model.resource.ResourceModel({
+               bundleUrl: 'i18n/loc.properties'
+            })
+            sap.ui.getCore().setModel(oBundle,"i18n");
             sap.ui.xmlview({ viewName : "gs.App" })
                .placeAt("content");
          });
       </script>
    </head>
-  <body class="sapUiBody" id="content">
+  <body class="sapUiBody sapWing" id="content">
    </body>
 </html>

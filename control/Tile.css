@@ -1,0 +1,113 @@
+.sapWrcBoxBorders {
+  outline: 1px solid red;
+}
+.sapWingWRCTile.sapWrcFocused:after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  bottom: -3px;
+  right: -3px;
+  border: 1px #888 solid;
+}
+.sapWingWRCTile:focus {
+  outline-style: dotted !important;
+  outline-offset: -2px !important;
+  outline-width: 1px !important;
+}
+.sapWingWRCTile[data-image="true"]:hover {
+  background: #F7F9FA;
+}
+.sapWingWRCTile[data-image="true"]:hover .sapWingTileBackgroundImage {
+  z-index: 1;
+  opacity: 1;
+  transform: scale(1);
+  top: 2rem;
+}
+.sapWingWRCTile[data-image="true"]:hover .sapWingWRCTileIcons {
+  display: none;
+}
+.sapWingWRCTile .sapWingWRCTileInner {
+  margin: 0.5rem;
+}
+.sapWingWRCTile .sapWingWRCTileTitle {
+  font-size: 0.75rem;
+  word-break: break-all;
+  color: var(--sapUiSelected);
+  z-index: 2;
+}
+.sapWingWRCTile .sapWingTitleGrid {
+  display: grid;
+  grid-column-gap: 0.35rem;
+  align-items: center;
+}
+.sapWingWRCTile .sapWingFavoriteButton {
+  border-radius: 50%;
+  border: 1px solid var(--sapUiButtonBorderColor);
+  height: 1.5rem;
+  width: 1.5rem;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+.sapWingWRCTile .sapWingFavoriteButton .sapUiIcon::before {
+  font-weight: bold;
+}
+.sapWingWRCTile .sapWingFavoriteButton:hover {
+  background-color: var(--sapUiButtonHoverBackground);
+  border-color: var(--sapUiButtonHoverBorderColor);
+}
+.sapWingWRCTile .sapWingFavoriteButton:focus {
+  outline: none;
+  border-style: dotted;
+  border-width: 2px;
+  background-color: var(--sapUiButtonHoverBackground);
+}
+.sapWingWRCTile .sapWingTileMoreButton {
+  position: absolute;
+  bottom: 0.25rem;
+  right: 0.5rem;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.sapWingWRCTile .sapWingTileMoreButton .sapMBtnInner {
+  background: transparent;
+}
+.sapWingWRCTile .sapWingWRCTileIcons {
+  display: grid;
+  grid-template-columns: 1rem 1fr;
+  grid-column-gap: 0.25rem;
+  grid-row-gap: 0;
+  position: absolute;
+  bottom: 0.15rem;
+  right: 0.5rem;
+  left: 0.5rem;
+}
+.sapWingWRCTile .sapWingWRCTileIcons .sapUiIcon {
+  color: var(--sapTile_IconColor);
+}
+.sapWingWRCTile .sapWingTileIconText {
+  font-size: 0.75rem;
+  line-height: normal;
+}
+.sapWingWRCTile .sapWingTileBackgroundImage {
+  opacity: 0.75;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  mix-blend-mode: multiply;
+  transform: scale(0.75);
+  transition: opacity 0.25s, transform 0.1s ease, top 0.1s ease;
+}
+.sapWingWRCTile .sapWingTileBackgroundIcon {
+  position: absolute;
+  opacity: 0.35;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}

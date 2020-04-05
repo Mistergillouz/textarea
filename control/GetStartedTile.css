@@ -1,0 +1,21 @@
+.sapWrcGetStartedTile {
+  padding: 0.75rem;
+}
+.sapWrcGetStartedTile .sapWrcGetStartedTitle {
+  font-size: larger;
+  font-weight: bold;
+}
+.sapWrcGetStartedTile .sapWrcGetStartedSubTitle {
+  font-size: 0.75rem;
+}
+.sapWrcGetStartedTile .sapWrcGetStartedIcon {
+  position: absolute;
+  bottom: 0.75rem;
+}
+.sapWrcGetStartedTile[aria-selected="true"] .sapWrcGetStartedTileSelection {
+  border-top: 1.5rem solid deepskyblue;
+  border-left: 1.5rem solid transparent;
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+}

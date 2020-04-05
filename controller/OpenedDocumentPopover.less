@@ -1,0 +1,92 @@
+
+.showButtons() {
+  .sapWrcOpenedItemButton {
+    visibility: visible;
+  }
+}
+
+.sapWrcOpenedDocumentDialog {
+  user-select: none;
+  border-radius: 7px !important;
+  transform: translate(0, 0) !important;
+  min-width: 17.5rem !important;
+
+  &[data-visible="false"] {
+    opacity: .65;
+    max-height: 0 !important;
+    min-height: 0 !important;
+    .sapMDialogResizeHandler {
+      display: none;
+    }
+  }
+
+  .sapWrcOpenedContainer {
+    overflow: auto;
+  }
+
+  .sapWrcOpenedDocumentItem {
+    .sapMCb {
+      display: none;
+    }
+
+    .sapMText {
+      color: #666666; // var(--sapUiContentLabelColor)
+    }
+
+    &[aria-selected="true"] {
+      .showButtons()
+    }
+
+    &:focus {
+      .showButtons()
+    }
+
+    &:hover {
+      .showButtons()
+    }
+
+    &[data-active="true"] {
+      border-left: 3px solid #418ac7; // var(----sapButton_Emphasized_BorderColor)
+      .sapWrcOpenedDocName {
+        font-size: .875rem !important;
+        font-weight: bold;
+      }
+      .showButtons()
+    }
+
+    .sapWrcOpenedItemButton {
+      visibility: hidden;
+    }
+
+
+  }
+
+  .sapWrcSmallFont {
+    margin-top: .25rem;
+    font-size: .75rem !important;
+  }
+}
+
+
+
+.sapMFlexBox {
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  /* Track */
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  /* Handle */
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+  }
+
+  /* Handle on hover */
+  &::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+}
+

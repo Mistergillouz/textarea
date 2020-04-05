@@ -1,0 +1,66 @@
+.sapWrcOpenedDocumentDialog {
+  user-select: none;
+  border-radius: 7px !important;
+  transform: translate(0, 0) !important;
+  min-width: 17.5rem !important;
+}
+.sapWrcOpenedDocumentDialog[data-visible="false"] {
+  opacity: 0.65;
+  max-height: 0 !important;
+  min-height: 0 !important;
+}
+.sapWrcOpenedDocumentDialog[data-visible="false"] .sapMDialogResizeHandler {
+  display: none;
+}
+.sapWrcOpenedDocumentDialog .sapWrcOpenedContainer {
+  overflow: auto;
+}
+.sapWrcOpenedDocumentDialog .sapWrcOpenedDocumentItem .sapMCb {
+  display: none;
+}
+.sapWrcOpenedDocumentDialog .sapWrcOpenedDocumentItem .sapMText {
+  color: #666666;
+}
+.sapWrcOpenedDocumentDialog .sapWrcOpenedDocumentItem[aria-selected="true"] .sapWrcOpenedItemButton {
+  visibility: visible;
+}
+.sapWrcOpenedDocumentDialog .sapWrcOpenedDocumentItem:focus .sapWrcOpenedItemButton {
+  visibility: visible;
+}
+.sapWrcOpenedDocumentDialog .sapWrcOpenedDocumentItem:hover .sapWrcOpenedItemButton {
+  visibility: visible;
+}
+.sapWrcOpenedDocumentDialog .sapWrcOpenedDocumentItem[data-active="true"] {
+  border-left: 3px solid #418ac7;
+}
+.sapWrcOpenedDocumentDialog .sapWrcOpenedDocumentItem[data-active="true"] .sapWrcOpenedDocName {
+  font-size: 0.875rem !important;
+  font-weight: bold;
+}
+.sapWrcOpenedDocumentDialog .sapWrcOpenedDocumentItem[data-active="true"] .sapWrcOpenedItemButton {
+  visibility: visible;
+}
+.sapWrcOpenedDocumentDialog .sapWrcOpenedDocumentItem .sapWrcOpenedItemButton {
+  visibility: hidden;
+}
+.sapWrcOpenedDocumentDialog .sapWrcSmallFont {
+  margin-top: 0.25rem;
+  font-size: 0.75rem !important;
+}
+.sapMFlexBox {
+  /* Track */
+  /* Handle */
+  /* Handle on hover */
+}
+.sapMFlexBox::-webkit-scrollbar {
+  width: 10px;
+}
+.sapMFlexBox::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+.sapMFlexBox::-webkit-scrollbar-thumb {
+  background: #888;
+}
+.sapMFlexBox::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

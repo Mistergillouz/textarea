@@ -1,0 +1,137 @@
+@import "style/wrc.less";
+
+.sapWingWRCTile {
+
+  &.sapWrcFocused:after   {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    bottom: -3px;
+    right: -3px;
+    border: 1px #888 solid;
+  }
+
+  &:focus {
+    outline-style: dotted !important;
+    outline-offset: -2px !important;
+    outline-width: 1px !important;
+  }
+
+  &[data-image="true"] {
+
+    &:hover {
+      background: #F7F9FA;
+
+      .sapWingTileBackgroundImage {
+        z-index: 1;
+        opacity: 1;
+        transform: scale(1);
+        top: 2rem;
+      }
+
+      .sapWingWRCTileIcons {
+        display: none;
+      }
+    }
+  }
+
+  .sapWingWRCTileInner {
+    margin: .5rem;
+  }
+
+  .sapWingWRCTileTitle {
+    font-size: .75rem;
+    word-break: break-all;
+    color: var(--sapUiSelected);
+    z-index: 2;
+  }
+
+  .sapWingTitleGrid {
+    display: grid;
+    grid-column-gap: .35rem;
+    align-items: center;
+  }
+
+  .sapWingFavoriteButton {
+    border-radius: 50%;
+    border: 1px solid var(--sapUiButtonBorderColor);
+    height: 1.5rem;
+    width: 1.5rem;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+
+    .sapUiIcon::before {
+      font-weight: bold;
+    }
+
+    &:hover {
+      background-color: var(--sapUiButtonHoverBackground);
+      border-color: var(--sapUiButtonHoverBorderColor);
+    }
+
+    &:focus {
+      outline: none;
+      border-style: dotted;
+      border-width: 2px;
+      background-color: var(--sapUiButtonHoverBackground);
+    }
+  }
+
+  .sapWingTileMoreButton {
+    position: absolute;
+    bottom: 0.25rem;
+    right: 0.5rem;
+    padding: 0 !important;
+    margin: 0 !important;
+
+    .sapMBtnInner {
+      background: transparent;
+    }
+  }
+
+  .sapWingWRCTileIcons {
+    display: grid;
+    grid-template-columns: 1rem 1fr;
+    grid-column-gap: .25rem;
+    grid-row-gap: 0;
+    position: absolute;
+    bottom: .15rem;
+    right: .5rem;
+    left: .5rem;
+    .sapUiIcon {
+      color: @WRC_WelcomeSmallIconColor;
+    }
+  }
+
+  .sapWingTileIconText {
+    font-size: .75rem;
+    line-height: normal;
+  }
+
+  .sapWingTileBackgroundImage {
+    opacity: .75;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    // background-color: white;
+    mix-blend-mode: multiply;
+    transform: scale(0.75);
+    transition: opacity 0.25s, transform .1s ease, top .1s ease;
+  }
+
+  .sapWingTileBackgroundIcon {
+    position: absolute;
+    opacity: 0.35;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+

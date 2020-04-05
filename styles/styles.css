@@ -1,0 +1,6 @@
+.sapWrcTest {
+  background: deepskyblue !important;
+}
+[dir="rtl"] .sapWrcTest {
+  background: red  !important;
+}

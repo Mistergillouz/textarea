@@ -84,6 +84,7 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
         this.animation = new Animation(brick, form, speed)
         this.animation.left = x
 
+
         this.playground.appendChild(brick)
       }
 
@@ -148,14 +149,19 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
           if (!form.contains(x, y)) {
             continue
           }
+
+          const container = document.createElement('div')
+          container.style.position = 'absolute'
+          container.style.top = (y * TILE_SIZE) + 'px'
+          container.style.left = (x * TILE_SIZE) + 'px'
+
           const tileIndex = Math.floor(Math.random() * this.tileElements.length)
           const tile = this.tileElements[tileIndex]
 
           const innerTile = document.createElement('div')
-          innerTile.innerHTML = new String(tile.html)
           innerTile.style.position = 'absolute'
-          innerTile.style.left = (x * TILE_SIZE) + 'px'
-          innerTile.style.top = (y * TILE_SIZE) + 'px'
+          innerTile.style.top = 0
+          innerTile.innerHTML = new String(tile.html)
           innerTile.style.opacity = 0.9
 
           const scale = Math.min(tileSize / tile.height, tileSize / tile.width)
@@ -167,14 +173,13 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
           innerTile.classList.add('sapWrcBrick')
 
           const canvas = document.createElement('canvas')
-          canvas.style.position = 'absolute'
-          canvas.style.left = (x * TILE_SIZE) + 'px'
-          canvas.style.top = (y * TILE_SIZE) + 'px'
           canvas.width = TILE_SIZE
           canvas.height = TILE_SIZE
 
-          div.appendChild(canvas)
-          div.appendChild(innerTile)
+          container.appendChild(canvas)
+          container.appendChild(innerTile)
+
+          div.appendChild(container)
 
           const ctx = canvas.getContext("2d")
           this.drawBorder (ctx, 0, 0, canvas.width, canvas.height, color)
@@ -527,8 +532,16 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
     initForms () {
       return [
         new Form(2, 2),
-        new Form(1, 3),
-        new Form(3, 1),
+
+        new Form([
+          [true],
+          [true],
+          [true]
+        ]),
+
+        new Form([
+          [true, true, true]
+        ]),
 
         // XXX
         // X
@@ -631,8 +644,8 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
     }
 
     getOffset (form) {
-      const offsetX = (this.width - form.width) * TILE_SIZE
-      const offsetY = (this.height - form.height) * TILE_SIZE
+      const offsetX = (this.width - form.width) / 2 * TILE_SIZE
+      const offsetY = (this.height - form.height) / 2 * TILE_SIZE
       return {
         offsetX,
         offsetY
@@ -664,31 +677,60 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
     }
 
     rotate () {
-      debugger
-      this.rotation += 90
-      this.target.style.transform = `rotate(${this.rotation}deg)`
+      let index = 0
+      const matrix = JSON.parse(JSON.stringify(this.form.matrix))
+      matrix.forEach((row) => row.forEach((_, cellIndex) => {
+        row[cellIndex] = row[cellIndex] ? index++ : -1
+      }))
 
-      const rotated = this.form.rotate()
-      const { offsetX, offsetY } = this.form.getOffset(rotated)
-      this.left += offsetX
-      this.top += offsetY
-      this.form = rotated
+      const resultForm = new Form(matrix).rotate()
+      const children = Array.from(this.target.children)
+      const rotatedChildren = []
+      resultForm.matrix.forEach((row, rowIndex) => {
+        row.forEach((index, colIndex) => {
+          if (index !== -1) {
+            const element = children[index]
+            rotatedChildren.push(element)
+            this.target.removeChild(element)
+            element.style.top = rowIndex * TILE_SIZE + 'px'
+            element.style.left = colIndex * TILE_SIZE + 'px'
+          }
+        })
+      })
+
+      rotatedChildren.forEach((element) => this.target.appendChild(element))
+      this.target.style.width = resultForm.width * TILE_SIZE + 'px'
+      this.target.style.height = resultForm.height * TILE_SIZE + 'px'
+
+      this.form = this.form.rotate()
+      this.updateBox()
     }
 
     get top () {
-      return parseFloat(this.target.style.top)
+      return this._top
     }
 
     set top (top) {
+      if (top === this.top) {
+        debugger
+      }
       this.target.style.top = Math.floor(top) + 'px'
+      this.updateBox()
     }
 
     get left () {
-      return parseFloat(this.target.style.left)
+      return this._left
     }
 
     set left (left) {
       this.target.style.left = left + 'px'
+    }
+
+    updateBox () {
+      const rect = this.target.getBoundingClientRect()
+      const parentRect = this.target.parentNode.getBoundingClientRect()
+      this._top = Math.round(rect.top - parentRect.top)
+      this._left = Math.round(rect.left - parentRect.left)
     }
 
     asyncTop (top) {

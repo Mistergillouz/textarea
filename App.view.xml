@@ -2,16 +2,112 @@
    xmlns="sap.m"
    xmlns:control="sap.bi.webi.ui.control"
    controllerName="gs.App"
+   xmlns:l="sap.ui.layout"
+	xmlns:f="sap.ui.layout.form"
+   xmlns:dnd="sap.ui.core.dnd"
    xmlns:core="sap.ui.core"
-   xmlns:mvc="sap.ui.core.mvc">
+   xmlns:mvc="sap.ui.core.mvc"
+   xmlns:uxap="sap.uxap"
+   height="100%">
 
-    <mvc:XMLView viewName="sap.bi.webi.components.document.dictionary.view.DocumentDictionary" />
-      <!-- <control:AvailObjects
-         width="250px"
-         height="500px"
-         allowSearch="false"
-         requestContextMenu="onRequestContextMenu"
-         selectionChanged="onSelectionChanged"
-         isMulti="false"/> -->
-   
+   <Page class="sapWingWelcomeView" enableScrolling="true" showHeader="true" showNavButton="false" height="500px">
+      <customHeader>
+         <Toolbar design="Transparent">
+            <Button text="Tetris" press="onTetris"/>
+            <Button text="Toast" press="onToast"/>
+            <Button text="Time!" press="onShowDateTimePicker"/>
+            <DateTimePicker/>
+            <Button class="sapWrcTest" text="Opened" press="onDS"/>
+         </Toolbar>
+      </customHeader>
+
+      <VBox renderType="Bare">
+         <HBox renderType="Bare" wrap="NoWrap">
+            <control:GetStartedTile
+               title="Import"
+               selected="true"
+               subTitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+               icon="sap-icon://document"/>
+            <control:GetStartedTile
+               title="Open"
+               subTitle="Open a locally saved document"
+               icon="sap-icon://document"/>
+         </HBox>
+
+         <control:TileBox id="dragDropBox0"
+            class="sapUiSizeCompact sapUiSmallMargin"
+            icon="sap-icon://document"
+            title="Recents Documents">
+            <control:header>
+               <Button text="Header"/>
+               <Button text="Header2"/>
+            </control:header>
+
+            <control:items>
+               <control:Tile
+                  backgroundIcon="sap-icon://document-text"
+                  showDelete="true"
+                  title="Document 1">
+                  <control:icons>
+                     <control:TileIcon icon="sap-icon://show" text="Lorem ipsum dolor sit amet" visible="{/visibleTileIcon}"/>
+                     <control:TileIcon icon="sap-icon://action-settings" text="Lorem Webi Document" additionalText="Coucou"/>
+                  </control:icons>
+                  <control:dragDropConfig>
+                     <dnd:DragInfo dragStart="onDragStart" dragEnd="onDragEnd"/>
+                  </control:dragDropConfig>
+
+               </control:Tile>
+
+               <control:Tile title="Document 2"/>
+               <Button text="Button" width="15rem"/>
+               <control:Tile title="Document 3"/>
+               <control:Tile title="Document 4"/>
+               <Button text="Button2"/>
+               <control:Tile title="Document 5"/>
+               <control:Tile title="Document 6"/>
+               <control:Tile title="Document 7"/>
+               <control:Tile title="Document 8"/>
+               <control:Tile title="Document 9"/>
+               <control:Tile title="Document 10"/>
+               <control:Tile title="Document 11"/>
+               <control:Tile title="Document 12"/>
+               <control:Tile title="Document 13"/>
+               <control:Tile title="Document 14"/>
+               <control:Tile title="Document 15"/>
+            </control:items>
+
+            <control:dragDropConfig>
+               <dnd:DropInfo dragEnter="onDragEnter" dropPosition="Between" dropEffect="Move" drop="onDrop"/>
+            </control:dragDropConfig>
+         </control:TileBox>
+
+         <control:TileBox class="sapUiSmallMarginTop" id="dragDropBox1">
+            <control:Opened class="sapUiTinyMarginBegin sapUiTinyMarginTop"
+               title="Island Marketing Island Marketing Island Marketing Island Marketing"
+               image="images/tile1.png">
+               <control:buttons>
+                  <Button icon="sap-icon://save"/>
+                  <Button icon="sap-icon://action"/>
+                  <Button icon="sap-icon://decline"/>
+               </control:buttons>
+               <control:dragDropConfig>
+                  <dnd:DragInfo dragStart="onDragStart" dragEnd="onDragEnd"/>
+               </control:dragDropConfig>
+            </control:Opened>
+
+            <control:Opened class="sapUiTinyMarginBegin sapUiTinyMarginTop"
+               title="Super Charting Demo"
+               image="images/tile2.png"/>
+            <control:Opened class="sapUiTinyMarginBegin sapUiTinyMarginTop"
+               image="images/tile3.png"/>
+
+            <control:dragDropConfig>
+               <dnd:DropInfo dragEnter="onDragEnter" dropPosition="Between" dropEffect="Move" drop="onDrop"/>
+            </control:dragDropConfig>
+
+         </control:TileBox>
+
+      </VBox>
+   </Page>
+
 </mvc:View>

@@ -1,0 +1,79 @@
+<mvc:View controllerName="sap.bi.wrc.controller.OpenedDocumentPopover"
+          xmlns:core="sap.ui.core"
+          xmlns:mvc="sap.ui.core.mvc"
+          xmlns="sap.m">
+
+
+    <Dialog class="wingTestOpenedDocumentDialog sapWrcOpenedDocumentDialog sapUiSizeCompact"
+      id="dialog"
+      draggable="true"
+      resizable="true"
+      contentWidth="auto"
+      contentHeight="auto">
+
+        <customHeader>
+            <Toolbar>
+                <core:Icon class="sapUiSmallMarginBegin sapUiTinyMarginEnd sapWrcIconBold" src="sap-icon://documents"/>
+                <Label class="sapWrcDialogTitle" text="Open Documents"/>
+                <ToolbarSpacer/>
+                <Button icon="sap-icon://minimize" tooltip="Minimize" press="onMinimize" visible="{/visible}"/>
+                <Button icon="sap-icon://header" tooltip="Restore" press="onMinimize" visible="{= !${/visible}}"/>
+                <Button icon="sap-icon://decline" tooltip="Close" press="onClose"/>
+            </Toolbar>
+        </customHeader>
+
+        <VBox class="sapUiTinyMarginTopBottom sapUiTinyMarginEnd sapUiSmallMarginBegin" renderType="Bare" visible="{/visible}">
+            <List class="wingTestOpenedDocuments sapWrcOpenedDocumentsList" id="documents"
+                mode="SingleSelectMaster"
+                showSeparators="None"
+                includeItemInSelection="true"
+                items="{/documents}">
+                <items>
+                    <CustomListItem class="wingTestOpenedDocumentItem sapWrcOpenedDocumentItem"
+                        selected="{selected}"
+                        tooltip="{ path: '', formatter: '.formatter.getDocumentTooltip' }">
+                        <HBox renderType="Bare" justifyContent="SpaceBetween" alignItems="Center" class="sapUiTinyMargin">
+                            <VBox renderType="Bare">
+                                <Text class="wingTestOpenedDocumentName sapWrcOpenedDocName" maxLines="2" text="{name}">
+                                    <layoutData>
+                                        <FlexItemData growFactor="1" />
+                                    </layoutData>
+                                </Text>
+                                <Text class="wingTestOpenedDocumentReportName sapWrcSmallFont" maxLines="2" text="{report}">
+                                    <layoutData>
+                                        <FlexItemData growFactor="1" />
+                                    </layoutData>
+                                </Text>
+                            </VBox>
+                            <HBox renderType="Bare" alignItems="Center">
+                                <Button class="wingTestShowOpenedDocument sapWrcOpenedItemButton" type="Transparent"
+                                    icon="sap-icon://show"
+                                    visible="{= !${active}}"
+                                    tooltip="Show document"
+                                    press="onShowDocument"/>
+                                <Button class="wingTestCloseOpenedDocument sapWrcOpenedItemButton" type="Transparent"
+                                    icon="sap-icon://decline"
+                                    tooltip="Close document"
+                                    press="onCloseDocument"/>
+                            </HBox>
+                        </HBox>
+                        <customData>
+                            <core:CustomData key="active" value="{= String(${active})}" writeToDom="true"/>
+                        </customData>
+                    </CustomListItem>
+                </items>
+            </List>
+        </VBox>
+
+        <endButton>
+            <Button class="wingTestchangePasswordCancelButton"
+                visible="{/visible}"
+                text="Close"
+                press="onClose"/>
+        </endButton>
+        <customData>
+            <core:CustomData key="visible" value="{= String(${/visible})}" writeToDom="true"/>
+        </customData>
+
+    </Dialog>
+</mvc:View>

@@ -1,0 +1,28 @@
+
+@GET_STARTED_SPACING: .75rem;
+
+.sapWrcGetStartedTile {
+  padding: @GET_STARTED_SPACING;
+
+  .sapWrcGetStartedTitle {
+    font-size: larger;
+    font-weight: bold;
+  }
+
+  .sapWrcGetStartedSubTitle {
+    font-size: .75rem;
+  }
+
+  .sapWrcGetStartedIcon {
+    position: absolute;
+    bottom: @GET_STARTED_SPACING;
+  }
+
+  &[aria-selected="true"] .sapWrcGetStartedTileSelection {
+    border-top: 1.5rem solid deepskyblue;
+    border-left: 1.5rem solid transparent;
+    position: absolute;
+    top: 0.25rem;
+    right: .25rem;
+  }
+}

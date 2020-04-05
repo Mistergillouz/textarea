@@ -1,0 +1,48 @@
+
+.sapWrcTileBox {
+  position: relative;
+  background: gray;
+
+  .sapWrcTileBoxGrid {
+    display: grid;
+  }
+
+  .sapWrcTileBoxResizer {
+    position: absolute;
+    height: .5rem;
+    right: 0;
+    left: 0;
+    bottom: unset;
+    background: yellow;
+    cursor: row-resize;
+  }
+
+  &.sapWrcTileBoxNoScrollBar .sapWrcTileBoxGrid {
+    overflow: hidden
+  }
+
+  &:not(.sapWrcTileBoxNoScrollBar) .sapWrcTileBoxGrid {
+    overflow: auto;
+
+    &::-webkit-scrollbar {
+      width: .5rem !important;
+      height: .5rem !important;
+      background-color: #a8d3e08f !important;
+    }
+
+    &::-webkit-scrollbar-track {
+      border-radius: .25rem !important;
+      background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: #00aeff !important;
+      border-radius: .25rem !important;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+  }
+}
+
+
+

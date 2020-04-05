@@ -1,283 +1,99 @@
 sap.ui.define([
   "sap/ui/core/mvc/Controller",
-  'ui/EnterNamePopoper'
-], function (Controller, EnterNamePopover) {
+  'sap/bi/wrc/control/Tetris'
+
+], function (Controller, Tetris) {
   "use strict";
 
   const C = Controller.extend('gs.App', {})
 
-  let count = 0
-
-  const SuggestionKind = {
-    Formula: 1,
-    Object: 2
-  }
-
   C.prototype.onInit = function () {
-
-    // axios.get('data/data.json')
-    //   .then(req => req.data)
-    //   .then(mock => {
-    //     const formulaEditor = this.byId('formulaEditor')
-    //     formulaEditor.setFunctions(mock.functions)
-    //     formulaEditor.setOperators(mock.operators)
-    //     formulaEditor.setDictionary(mock.dico)
-    //   })
-
-    const defaultValues = [
-      'Gilles',
-      { $: 'Dollar', '@id': 'key' },
-      { '@id': 'keyOnly' }
-    ]
-
-    const answerValuesMulti = [
-      'Answer1',
-      '',
-      { $: 'Dollar', '@id': 'key' },
-      { $: 'Sub1' }
-    ]
-
-    const answerValuesMono = [
-      { $: 'Dollar', '@id': 'key' }
-    ]
-
-    const values = [
-      "Le Lorem Ipsum est simplement du faux texte employé dans la composition et la mise en page avant impression. Le Lorem Ipsum est le faux texte standard de limprimerie depuis les années 1500, quand un imprimeur anonyme assembla ensemble des morceaux de texte pour réaliser un livre spécimen de polices de texte. Il n'a pas fait que survivre cinq siècles, mais s'est aussi adapté à la bureautique informatique, sans que son contenu n'en soit modifié. Il a été popularisé dans les années 1960 grâce à la vente de feuilles Letraset contenant des passages du Lorem Ipsum, et, plus récemment, par son inclusion dans des applications de mise en page de texte, comme Aldus PageMaker.",
-      { $: 'Dollar', '@id': 'key' },
-      { $: 'Dollar', '@id': 'keykey' },
-      '',
-      {
-        $: 'Folder',
-        nodes: [ 'Folder0', { $: 'Folder1' } ]
-      },
-      {
-        $: 'Folder 2',
-        isWithChildren: true
-      }
-    ]
-
-    for (let i = 0; i < 50; i++) {
-      values.push({ $: 'Value' + i })
-    }
+    $.getJSON('data/data.json', (data) => {
+      console.log(data)
+      this._model.setData(data, true)
+    })
 
     this._model = new sap.ui.model.json.JSONModel({
-      searchMode: 'Local',
-      values,
-      defaultValues,
-      answerValues: answerValuesMulti,
-      items: [
-        { key: 'k1', text: 'text1', enabled: true },
-        { key: 'k2', text: 'text2', enabled: false },
-        { key: 'k3', text: 'text3', enabled: true }
-      ]
+      visibleTileIcon: true,
+      select: [{ id: '1', text: 'Ligne1'}, { id: '2', text: 'Ligne2' }]
     })
     this._model.setDefaultBindingMode(sap.ui.model.BindingMode.TwoWay)
     this.getView().setModel(this._model)
   }
 
-  C.prototype.onShowKeys = function () {
-    const lov = this.byId('lov')
-    lov.setShowKeys(!lov.getShowKeys())
+  C.prototype.onAfterRendering = function () {
   }
 
-  C.prototype.onSelectionChange = function (oEvent) {
-    console.log(oEvent.getSource().getAnswerValues())
+  C.prototype.onTetris = function () {
+    const args = {
+      callback: (result) => console.log('tetris', result)
+    }
+
+    this._tetris = new Tetris(args)
   }
-  C.prototype.onFetchValues = function (oEvent) {
-    const done = oEvent.getParameter('done')
-    done([
-      'Sub0',
-      {
-        $: 'Sub1',
-        isWithChildren: true
+
+  C.prototype.onDS = function (oEvent) {
+    const ID = 'opened'
+    const view = sap.ui.xmlview(ID, 'sap.bi.webi.view.OpenedDocumentPopover')
+
+    this.getView().addDependent(view)
+    const dialog = view.byId('dialog')
+
+    dialog.setVisible(true)
+    dialog.open()
+
+    const params = {
+      source: oEvent.getSource(),
+      callback: $.noop
+    }
+
+    view.getController().initialize(params)
+  }
+
+  C.prototype.onDragStart = function (oEvent) {
+    console.log('onDragStart')
+  }
+
+  C.prototype.onDragEnter = function (oEvent) {
+    console.log('onDragEnter')
+  }
+
+  C.prototype.onToast = function () {
+    sap.m.MessageToast.show("Lorem ipsum dolor sit amet\nConsectetur adipiscing elit\n\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum", {
+      width: "75%",                   // default
+      duration: 1000000,
+      autoClose: false
+    });
+  }
+
+  C.prototype.onShowDateTimePicker = function (oEvent) {
+    const dateTimePicker = new sap.m.DateTimePicker({
+      change: (oEvent) => {
+
+        debugger
       }
-    ])
-  }
-
-  C.prototype.onShowFragment = function (oEvent) {
-    const popover = new EnterNamePopover(this, {
-      title: 'Titre',
-      buttonText: 'Create',
-      text: 'Ceci est le texte',
-      value: 'Valeur',
-      cb: (result) => console.log(result)
     })
 
-    popover.show(oEvent.getSource())
+    dateTimePicker._openPopup = () => dateTimePicker._oPopup.openBy(oEvent.getSource())
+    dateTimePicker.toggleOpen()
   }
 
-  C.prototype.onFormulaChange = function (oEvent) {
-    const formula = oEvent.getParameter('formula')
-    console.log(formula)
+  C.prototype.onChange = function (oEvent) {
+    console.log('+ change')
   }
 
-  C.prototype._getDictionary = function () {
-    return this.getView().getViewData().dict
+  C.prototype.onOk = function (oEvent) {
+    const dt = this.byId('DP1')
+
+    const date = dt.getDateValue()
+    console.log('++ onOK', date)
   }
 
-  C.prototype._getFunctions = function () {
-    return this.getView().getViewData()
+  C.prototype._enumFunctions = function (object) {
+    const keys = Object.keys(object.__proto__)
+    keys.forEach((key) => {
+      const funct = object[key]
+      console.log(key, typeof funct === 'function')
+    })
   }
-
-  C.prototype.onSelectionChanged = function (oEvent) {
-    console.log(oEvent)
-  }
-
-  C.prototype.onRequestContextMenu = function (oEvent) {
-    const item = oEvent.getParameter('listItem').getBindingContext().getObject()
-    const done = oEvent.getParameter('done')
-    const menuItems = []
-
-    switch (item.nodeType) {
-      case 'Reference':
-        menuItems.push(new sap.m.MenuItem({
-          text: 'Edit Properties',
-          icon: 'sap-icon://edit',
-          press: () => this._onEditReference(item)
-        }))
-        menuItems.push(new sap.m.MenuItem({
-          text: 'Show referenced cell',
-          press: () => this._onShowReferenceCell(item)
-        }))
-        menuItems.push(new sap.m.MenuItem({
-          text: 'Delete...',
-          icon: 'sap-icon://delete',
-          startsSection: true,
-          press: () => this._onDeleteReference(item)
-        }))
-        break
-
-      case 'VariableFolder':
-        menuItems.push(new sap.m.MenuItem({
-          icon: 'sap-icon://create',
-          text: 'Create Variable...',
-          press: () => this._onCreateVariable(item)
-        }))
-        break
-
-      case 'Variable':
-        menuItems.push(new sap.m.MenuItem({
-          icon: 'sap-icon://edit',
-          text: 'Edit...',
-          press: () => this._onEditVariable(item)
-        }))
-        menuItems.push(new sap.m.MenuItem({
-          text: 'Rename...',
-          press: () => this._onRenameVariable(item)
-        }))
-
-        if (item['@qualification'] !== 'Measure') {
-          this._appendGeoMenu(menuItems, item, true)
-        }
-
-        menuItems.push(new sap.m.MenuItem({
-          text: 'Duplicate',
-          icon: 'sap-icon://duplicate',
-          startsSection: true,
-          press: () => this._onDuplicateVariable(item)
-        }))
-        menuItems.push(new sap.m.MenuItem({
-          text: 'Delete...',
-          icon: 'sap-icon://delete',
-          startsSection: true,
-          press: () => this._onDeleteVariable(item)
-        }))
-        break
-
-      case 'TimeDimension':
-        menuItems.push(new sap.m.MenuItem({
-          text: 'Create Time Dimension...',
-          icon: 'sap-icon://create-entry-time',
-          press: () => this._onCreateTimeDimension(item)
-        }))
-        break
-
-      case 'TimeLevel':
-        menuItems.push(new sap.m.MenuItem({
-          text: 'Edit Time Dimension...',
-          icon: 'sap-icon://edit',
-          press: () => this._onEditTimeDimension(item)
-        }))
-
-        menuItems.push(new sap.m.MenuItem({
-          text: 'Delete Time Dimension...',
-          icon: 'sap-icon://delete',
-          press: () => this._onDeleteTimeDimension(item)
-        }))
-        break
-
-      case 'Link':
-        menuItems.push(new sap.m.MenuItem({
-          text: 'Unmerge...',
-          icon: 'sap-icon://broken-link',
-          press: () => this._onUnMerge(item)
-        }))
-
-        menuItems.push(new sap.m.MenuItem({
-          text: 'Edit Properties...',
-          icon: 'sap-icon://edit',
-          press: () => this._onEditLinkProperties(item)
-        }))
-
-        this._appendGeoMenu(menuItems, item, true)
-        break
-        // Fallthru
-
-      case 'Geo':
-        this._appendGeoMenu(menuItems, item, false)
-        break
-
-      case 'Object':
-        const qualification = item['@qualification']
-        if (qualification === 'Measure') {
-          menuItems.push(new sap.m.MenuItem({
-            text: 'Change Type',
-            items: [
-              new sap.m.MenuItem({
-                text: 'Number',
-                press: () => this._onChangeTypeNumber(item)
-              }),
-              new sap.m.MenuItem({
-                text: 'Decimal',
-                press: () => this._onChangeTypeDecimal(item)
-              })
-            ]
-          }))
-        } else {
-          this._appendGeoMenu(menuItems, item, false)
-        }
-        break
-    }
-
-    if (menuItems.length) {
-      const menu = new sap.m.Menu({ items: menuItems })
-      done(menu)
-    }
-  }
-
-  C.prototype._appendGeoMenu = function (menuItems, item, addSeparator) {
-    menuItems.push(new sap.m.MenuItem({
-      icon: 'sap-icon://world',
-      text: 'Edit as Geography',
-      startsSection: addSeparator,
-      items: [
-        new sap.m.MenuItem({
-          text: 'By Name...',
-          press: () => this._onEditAsGeoByName(item)
-        }),
-        new sap.m.MenuItem({
-          text: 'By Latitude / Longitude...',
-          press: () => this._onEditAsGeoByLongLat(item)
-        })
-      ]
-    }))
-
-    menuItems.push(new sap.m.MenuItem({
-      text: 'Reset...',
-      enabled: item.nodeType === 'Geo',
-      press: () => this._onReset(item)
-    }))
-  }
-
-  return C
 })

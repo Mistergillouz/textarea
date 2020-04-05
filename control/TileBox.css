@@ -1,0 +1,21 @@
+.sapWrcTileBox:focus {
+  outline: 1px dotted gray;
+  outline-offset: 3px;
+}
+.sapWrcTileBox .sapWrcTileBoxHeader {
+  display: flex;
+  justify-content: space-between;
+}
+.sapWrcTileBox .sapWrcTileBoxHeader .sapWrcTileBoxHeaderBegin {
+  display: flex;
+  align-items: center;
+}
+.sapWrcTileBox .sapWrcTileBoxHeader .sapWrcTileBoxTitle {
+  font-size: larger;
+}
+.sapWrcTileBox .sapWrcTileBoxFlexBox {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
