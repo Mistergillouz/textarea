@@ -143,17 +143,18 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
       div.style.transition = 'all 0.5s ease-out 0s'
       div.style.top = 0
 
+      displayGrid(div, form)
+
       const tileSize = TILE_SIZE - (2 * BORDER_SIZE)
       for (let x = 0; x < form.width; x++) {
         for (let y = 0; y < form.height; y++) {
+          const container = document.createElement('div')
           if (!form.contains(x, y)) {
+            div.appendChild(container)
             continue
           }
 
-          const container = document.createElement('div')
-          container.style.position = 'absolute'
-          container.style.top = (y * TILE_SIZE) + 'px'
-          container.style.left = (x * TILE_SIZE) + 'px'
+          container.style.position = 'relative'
 
           const tileIndex = Math.floor(Math.random() * this.tileElements.length)
           const tile = this.tileElements[tileIndex]
@@ -188,6 +189,7 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
 
       return div
     }
+
 
     createLayout () {
       const mainContainer = document.createElement('div')
@@ -424,32 +426,22 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
             }
           })
 
-          if (indices.length) {
-            indices.forEach((rowIndex) => {
-              this.grid.splice(rowIndex, 1)
-              this.grid.splice(0, 0, new Array(TILES_WIDTH).fill(false))
+          indices.forEach((rowIndex) => {
+            this.grid.splice(rowIndex, 1)
+            this.grid.splice(0, 0, new Array(TILES_WIDTH).fill(false))
 
-              Array.from(this.playground.children).forEach((child) => {
-                const top = rowIndex * TILE_SIZE
-                if (top >= child.offsetTop && top < (child.offsetTop + child.offsetHeight)) {
-                  Array.from(child.children).forEach((subChild) => {
-                    if (subChild.offsetTop === (top - child.offsetTop)) {
-                      child.removeChild(subChild)
-                    }
-                  })
-                } else {
-                  const y = child.offsetTop + TILE_SIZE
-                  if (y >= this.playground.clientHeight) {
-                    setTimeout(() => this.playground.removeChild(child), 250)
-                  } else {
-                    child.style.top = y + 'px'
-                  }
+            const top = rowIndex * TILE_SIZE
+            Array.from(this.playground.children).forEach((child) => {
+              Array.from(child.children).forEach((brick) => {
+                if (top >= brick.offsetTop && top < (brick.offsetTop + brick.offsetHeight)) {
+                  debugger
                 }
               })
             })
-          }
+          })
 
           this.paused = false
+          console.log(this.grid)
           resolve()
         })
       })
@@ -482,8 +474,10 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
             })
 
             if (this.canFitGrid(form, bottomRect)) {
+              this.paused = true
               this.setInGrid(bottomRect).then(() => {
                 this.animation = null
+                this.paused = false
               })
               break
             }
@@ -498,8 +492,7 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
 
           const { form, left, top } = this.animation
           const rotated = form.rotate()
-          const { offsetX, offsetY } = form.getOffset(rotated)
-          const rect = this.toGridRect(left - offsetX, top - offsetY, rotated)
+          const rect = this.toGridRect(left, top, rotated)
           if (this.canFitGrid(rotated, rect)) {
             this.animation.rotate()
           }
@@ -643,15 +636,6 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
       return new Form(this.height, this.width)
     }
 
-    getOffset (form) {
-      const offsetX = (this.width - form.width) / 2 * TILE_SIZE
-      const offsetY = (this.height - form.height) / 2 * TILE_SIZE
-      return {
-        offsetX,
-        offsetY
-      }
-    }
-
     clone () {
       const clone = new Form()
       return Object.assign(clone, JSON.parse(JSON.stringify(this)))
@@ -679,28 +663,24 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
     rotate () {
       let index = 0
       const matrix = JSON.parse(JSON.stringify(this.form.matrix))
-      matrix.forEach((row) => row.forEach((_, cellIndex) => {
-        row[cellIndex] = row[cellIndex] ? index++ : -1
-      }))
+      matrix.forEach((row) => row.forEach((_, cellIndex) => row[cellIndex] = index++))
 
-      const resultForm = new Form(matrix).rotate()
       const children = Array.from(this.target.children)
       const rotatedChildren = []
+
+      const resultForm = new Form(matrix).rotate()
       resultForm.matrix.forEach((row, rowIndex) => {
         row.forEach((index, colIndex) => {
           if (index !== -1) {
             const element = children[index]
             rotatedChildren.push(element)
             this.target.removeChild(element)
-            element.style.top = rowIndex * TILE_SIZE + 'px'
-            element.style.left = colIndex * TILE_SIZE + 'px'
           }
         })
       })
 
       rotatedChildren.forEach((element) => this.target.appendChild(element))
-      this.target.style.width = resultForm.width * TILE_SIZE + 'px'
-      this.target.style.height = resultForm.height * TILE_SIZE + 'px'
+      displayGrid(this.target, resultForm)
 
       this.form = this.form.rotate()
       this.updateBox()
@@ -746,6 +726,13 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
         this.target.style.top = Math.floor(top) + 'px'
       })
     }
+  }
+
+
+  function displayGrid (div, form) {
+    div.style.display = 'grid'
+    div.style.gridTemplateColumns = `repeat(${form.width}, ${TILE_SIZE}px)`
+    div.style.gridAutoRows = TILE_SIZE + 'px'
   }
 
   return Tetris
