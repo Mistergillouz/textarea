@@ -146,8 +146,8 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
       displayGrid(div, form)
 
       const tileSize = TILE_SIZE - (2 * BORDER_SIZE)
-      for (let x = 0; x < form.width; x++) {
-        for (let y = 0; y < form.height; y++) {
+      for (let y = 0; y < form.height; y++) {
+        for (let x = 0; x < form.width; x++) {
           const container = document.createElement('div')
           if (!form.contains(x, y)) {
             div.appendChild(container)
@@ -426,19 +426,28 @@ sap.ui.define(['sap/ui/events/PseudoEvents'], function (PseudoEvents) {
             }
           })
 
+          const toDelete = []
+          const toMove = []
           indices.forEach((rowIndex) => {
             this.grid.splice(rowIndex, 1)
             this.grid.splice(0, 0, new Array(TILES_WIDTH).fill(false))
 
             const top = rowIndex * TILE_SIZE
             Array.from(this.playground.children).forEach((child) => {
+              const offsetTop = child.offsetTop
+              if (offsetTop < top) {
+                toMove.push(child)
+              }
               Array.from(child.children).forEach((brick) => {
-                if (top >= brick.offsetTop && top < (brick.offsetTop + brick.offsetHeight)) {
-                  debugger
+                if (top >= (offsetTop + brick.offsetTop) && top < (offsetTop + brick.offsetTop + brick.offsetHeight)) {
+                  toDelete.push(brick)
                 }
               })
             })
           })
+          
+          toDelete.forEach((element) => element.remove())
+          toMove.forEach((element) => element.style.top = parseFloat(element.style.top) + TILE_SIZE + 'px')
 
           this.paused = false
           console.log(this.grid)
